@@ -98,6 +98,28 @@ extern Axis *axes[AXIS_COUNT];
 extern float oscilloscope[OSCILLOSCOPE_SIZE];
 extern size_t oscilloscope_pos;
 
+// ERG - Type for export of motor characterization data
+// ERG TODO - decided to use a simple array for now. Eventually, either uncomment or delete
+/*
+struct CharData_t {
+    uint32_t timestep = 0;           // [s]
+    float voltage_command = 0.0f;    // [V]
+    float encoder_pos = 0.0f;        // [rad]
+    float encoder_vel = 0.0f;        // [rad/s]
+};
+*/
+
+// ERG - modeling this system after the oscilloscope; defined here, initialized in communication.cpp
+#define CHARDATA_SIZE 128
+// extern CharData_t charData[CHARDATA_SIZE]; ERG TODO - either uncomment or delete
+//extern float charData[CHARDATA_SIZE]; //the 1x128 version
+extern float charData[4][CHARDATA_SIZE]; //the 4x128 version
+extern size_t charData_pos;
+
+
+
+
+
 // TODO: move
 // this is technically not thread-safe but practically it might be
 #define DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE) \

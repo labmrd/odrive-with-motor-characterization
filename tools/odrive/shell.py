@@ -5,7 +5,7 @@ import threading
 import fibre
 import odrive
 import odrive.enums
-from odrive.utils import start_liveplotter, dump_errors
+from odrive.utils import start_liveplotter, dump_errors, start_datarecorder # ERG - added start_datarecorder
 #from odrive.enums import * # pylint: disable=W0614
 
 def print_banner():
@@ -74,10 +74,11 @@ def launch_shell(args, logger, app_shutdown_token):
     As ODrives are connected they are made available as
     "odrv0", "odrv1", ...
     """
-
+    # ERG - added start_datarecorder
     interactive_variables = {
         'start_liveplotter': start_liveplotter,
-        'dump_errors': dump_errors
+        'dump_errors': dump_errors,
+        'start_datarecorder': start_datarecorder
     }
 
     # Expose all enums from odrive.enums

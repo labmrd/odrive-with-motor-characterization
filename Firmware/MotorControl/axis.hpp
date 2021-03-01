@@ -35,6 +35,7 @@ public:
         AXIS_STATE_CLOSED_LOOP_CONTROL = 8,  //<! run closed loop control
         AXIS_STATE_LOCKIN_SPIN = 9,       //<! run lockin spin
         AXIS_STATE_ENCODER_DIR_FIND = 10,
+        AXIS_STATE_TEST_INPUT = 11, //<! ERG - run test input and record data in charData
     };
 
     struct LockinConfig_t {
@@ -75,6 +76,43 @@ public:
         LockinConfig_t lockin;
     };
 
+    //ERG - Type for export of motor characterization data
+    /*
+    struct CharData_t {
+        uint32_t timestep = 0;           // [s]
+        float voltage_command = 0.0f;    // [V]
+        float encoder_pos = 0.0f;        // [rad]
+        float encoder_vel = 0.0f;        // [rad/s]
+    };
+    */
+
+    //ERG - Input type to be run by the characterize() function
+    enum InputType_t {
+        INPUT_TYPE_IMPULSE = 0,		//set current_setpoint high briefly, then zero
+        INPUT_TYPE_STEP = 1,		//set current_setpoint zero, then constant
+        INPUT_TYPE_CHIRP = 2,		//sweep current_setpoint through a given frequency range
+        INPUT_TYPE_NOISE = 3, 	//if we have time, good to add later
+    };
+
+    //ERG - Parameters for input run by the characterize() function
+    struct InputConfig_t {
+        InputType_t input_type = INPUT_TYPE_STEP; //see: InputType_t
+        float test_delay = 3.0f;        // [s]
+        float test_duration = 10.0f;	// [s]
+        float impulse_voltage = 2.0f;   // [V]
+        uint16_t impulse_peakDuration = 1;   // number of loopCount cycles, which happen at 8kHz
+        float step_voltage = 1.0f;		// [V]
+        float chirp_amplitude = 0.5f;	// [V]
+        float chirp_midline = 1.5f;		// [V]
+        float chirp_freqLow = 1.0f;		// [Hz]
+        float chirp_freqHigh = 1000.0f;	// [Hz]
+        int noise_max = 80;             // [#] percentage of voltage limit
+    };
+
+    //ERG
+    void record_test_data(uint32_t timestep, float voltage_setpoint);
+    bool run_test_input();
+
     enum thread_signals {
         M_SIGNAL_PH_CURRENT_MEAS = 1u << 0
     };
@@ -89,6 +127,7 @@ public:
     Axis(int axis_num,
             const AxisHardwareConfig_t& hw_config,
             Config_t& config,
+            InputConfig_t& input_config,
             Encoder& encoder,
             SensorlessEstimator& sensorless_estimator,
             Controller& controller,
@@ -193,6 +232,8 @@ public:
     int axis_num_;
     const AxisHardwareConfig_t& hw_config_;
     Config_t& config_;
+    //ERG QUESTION - all the ODrive config initializations are references e.g. Config_t& config_. Why? Do I need to do that?
+    InputConfig_t& input_config_;
 
     Encoder& encoder_;
     SensorlessEstimator& sensorless_estimator_;

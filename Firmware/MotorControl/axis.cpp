@@ -6,9 +6,11 @@
 #include "utils.h"
 #include "odrive_main.h"
 
+//ERG - added input_config initialization
 Axis::Axis(int axis_num,
            const AxisHardwareConfig_t& hw_config,
            Config_t& config,
+           InputConfig_t& input_config,
            Encoder& encoder,
            SensorlessEstimator& sensorless_estimator,
            Controller& controller,
@@ -17,6 +19,7 @@ Axis::Axis(int axis_num,
     : axis_num_(axis_num),
       hw_config_(hw_config),
       config_(config),
+      input_config_(input_config),
       encoder_(encoder),
       sensorless_estimator_(sensorless_estimator),
       controller_(controller),
@@ -315,6 +318,140 @@ bool Axis::run_idle_loop() {
     return check_for_errors();
 }
 
+//ERG - saves latest data for motor characterization
+void Axis::record_test_data(uint32_t timestep, float voltage_setpoint) {
+    if (charData_pos > CHARDATA_SIZE)
+        charData_pos = 0;
+    charData[0][charData_pos] = timestep;           // [#]
+    charData[1][charData_pos] = voltage_setpoint;        // [V]
+    charData[2][charData_pos] = encoder_.pos_estimate_;  // [rad]
+    charData[3][charData_pos] = encoder_.vel_estimate_;  // [rad/s]
+    charData_pos++;
+}
+
+//ERG - Sends voltage commands to the motor to run a test input
+//ERG TODO - how to output loopCount for start and stop? Print to terminal? Add magic number to charData?
+bool Axis::run_test_input() {
+    //Initialize and wait for [test_delay] seconds
+    float voltage_lim = motor_.effective_current_lim();
+    uint16_t counter = 0; //only used for impulse; simplify if convenient
+    float x = 0.0f;
+
+    uint32_t loopCountStart = loop_counter_;
+    record_test_data(-1, 0.0f);
+    run_control_loop([&]() {
+        float phase_vel = 2*M_PI * encoder_.vel_estimate_ / (float)encoder_.config_.cpr * motor_.config_.pole_pairs;
+        if (!motor_.update(0.0f, encoder_.phase_, phase_vel))
+            return false;
+        record_test_data(loop_counter_-loopCountStart, 0.0f);
+
+        x += current_meas_period / input_config_.test_delay;
+        return x < 1.0f;
+    });
+    
+    //Carry out configured test input
+    x = 0.0f;
+    switch (input_config_.input_type) {
+            
+        case INPUT_TYPE_IMPULSE:
+            run_control_loop([&]() {
+                float voltage_setpoint = 0.0f;
+                if (counter < input_config_.impulse_peakDuration) {
+                    voltage_setpoint = input_config_.impulse_voltage;
+                    if (voltage_setpoint > voltage_lim) {
+                        voltage_setpoint = voltage_lim;
+                    }
+                    if (voltage_setpoint < -voltage_lim) {
+                        voltage_setpoint = -voltage_lim;
+                    }
+                    counter++;
+                }
+                //comment here re: how motor update works
+                float phase_vel = 2*M_PI * encoder_.vel_estimate_ / (float)encoder_.config_.cpr * motor_.config_.pole_pairs;
+                if (!motor_.update(voltage_setpoint, encoder_.phase_, phase_vel))
+                    return false;
+                record_test_data(loop_counter_-loopCountStart, voltage_setpoint);
+
+                x += current_meas_period / input_config_.test_duration;
+                return x < 1.0f;
+            });
+            break;
+        
+        case INPUT_TYPE_STEP:
+            run_control_loop([&]() {
+                float voltage_setpoint = input_config_.step_voltage;
+                if (voltage_setpoint > voltage_lim) {
+                    voltage_setpoint = voltage_lim;
+                }
+                if (voltage_setpoint < -voltage_lim) {
+                    voltage_setpoint = -voltage_lim;
+                }
+
+                float phase_vel = 2*M_PI * encoder_.vel_estimate_ / (float)encoder_.config_.cpr * motor_.config_.pole_pairs;
+                if (!motor_.update(voltage_setpoint, encoder_.phase_, phase_vel))
+                    return false;
+                record_test_data(loop_counter_-loopCountStart, voltage_setpoint);
+
+                x += current_meas_period / input_config_.test_duration;
+                return x < 1.0f;
+            });
+            break;		
+        
+        case INPUT_TYPE_CHIRP:
+            run_control_loop([&]() {
+                //Calculate exponential chirp current voltage x(t) = sin(phi(0) + 2*pi*f0*((k^t)-1)/ln(k))
+                //Given phi(0) = 0 and rate of exponential change k = (f1/f0)^(1/T)
+                float exponent = 1 / input_config_.test_duration;
+                float k = pow(input_config_.chirp_freqHigh / input_config_.chirp_freqLow, exponent);
+                float scaling_term = (pow(k,x) - 1) / log(k);
+                float chirp_phase = 2*M_PI * input_config_.chirp_freqLow * scaling_term;
+                float voltage_setpoint = input_config_.chirp_amplitude * our_arm_sin_f32(chirp_phase) + input_config_.chirp_midline;
+                if (voltage_setpoint > voltage_lim) {
+                    voltage_setpoint = voltage_lim;
+                }
+                if (voltage_setpoint < -voltage_lim) {
+                    voltage_setpoint = -voltage_lim;
+                }
+                
+                float phase_vel = 2*M_PI * encoder_.vel_estimate_ / (float)encoder_.config_.cpr * motor_.config_.pole_pairs;
+                if (!motor_.update(voltage_setpoint, encoder_.phase_, phase_vel))
+                    return false;
+                record_test_data(loop_counter_-loopCountStart, voltage_setpoint);
+
+                x += current_meas_period / input_config_.test_duration;
+                return x < 1.0f;
+            });
+            break;
+        
+        case INPUT_TYPE_NOISE:
+            run_control_loop([&]() {
+                float voltage_setpoint = voltage_lim * (rand() % input_config_.noise_max) / 100;
+                if (voltage_setpoint > voltage_lim) {
+                    voltage_setpoint = voltage_lim;
+                }
+                if (voltage_setpoint < -voltage_lim) {
+                    voltage_setpoint = -voltage_lim;
+                }
+
+                float phase_vel = 2*M_PI * encoder_.vel_estimate_ / (float)encoder_.config_.cpr * motor_.config_.pole_pairs;
+                if (!motor_.update(voltage_setpoint, encoder_.phase_, phase_vel))
+                    return false;
+                record_test_data(loop_counter_-loopCountStart, voltage_setpoint);
+
+                x += current_meas_period / input_config_.test_duration;
+                return x < 1.0f;
+            });
+            break;
+            
+        default:
+            printf("Invalid input type.\n");
+            return false;
+    }
+
+    record_test_data(-1, 0.0f);
+    return true;
+}
+
 // Infinite loop that does calibration and enters main control loop as appropriate
 void Axis::run_state_machine_loop() {
 
@@ -370,6 +507,16 @@ void Axis::run_state_machine_loop() {
         // Handlers should exit if requested_state != AXIS_STATE_UNDEFINED
         bool status;
         switch (current_state_) {
+            //ERG - added axis state to allow user to request test input
+            case AXIS_STATE_TEST_INPUT: {
+                if (motor_.config_.motor_type != Motor::MOTOR_TYPE_GIMBAL || controller_.config_.control_mode != Controller::CTRL_MODE_CURRENT_CONTROL) {
+                    printf("To run test input, motor type must be set to MOTOR_TYPE_GIMBAL and control mode to CTRL_MODE_CURRENT_CONTROL.\n\
+                            Make sure voltage limit is set appropriately using the motor_.current_lim parameter.\n");
+                    goto invalid_state_label;}
+
+                status = run_test_input();
+            } break;
+
             case AXIS_STATE_MOTOR_CALIBRATION: {
                 status = motor_.run_calibration();
             } break;
