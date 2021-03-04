@@ -1,24 +1,15 @@
-![ODrive Logo](https://static1.squarespace.com/static/58aff26de4fcb53b5efd2f02/t/59bf2a7959cc6872bd68be7e/1505700483663/Odrive+logo+plus+text+black.png?format=1000w)
+IN PROGRESS - this work is unfinished. Estimated completion date: April 9, 2021.
 
-This project is all about accurately driving brushless motors, for cheap. The aim is to make it possible to use inexpensive brushless motors in high performance robotics projects, like [this](https://www.youtube.com/watch?v=WT4E5nb3KtY).
+This repository contains work done by the University of Minnesota Medical Robotics and Devices lab. It is a spinoff of the ODrive project, taking the main firmware and software of the ODrive (used for brushless DC motor control, primarily for robotics) and augmenting it with test input and data collection features to aid in motor characterization for fast tuning.
 
-| Branch | Build Status |
-|--------|--------------|
-| master | [![Build Status](https://travis-ci.org/madcowswe/ODrive.png?branch=master)](https://travis-ci.org/madcowswe/ODrive) |
-| devel  | [![Build Status](https://travis-ci.org/madcowswe/ODrive.png?branch=devel)](https://travis-ci.org/madcowswe/ODrive) |
-
-
-Please refer to the [Developer Guide](https://docs.odriverobotics.com/developer-guide) to get started with ODrive firmware development.
-
+For more information on the ODrive, see their [product website](https://odriverobotics.com/), [user guide](https://docs.odriverobotics.com/), [developer guide](https://docs.odriverobotics.com/developer-guide), and [github](https://github.com/odriverobotics/ODrive).
 
 ### Repository Structure
  * **Firmware**: ODrive firmware
  * **tools**: Python library & tools
  * **docs**: Documentation
 
-### Other Resources
-
- * [Main Website](https://www.odriverobotics.com/)
- * [User Guide](https://docs.odriverobotics.com/)
- * [Forum](https://discourse.odriverobotics.com/)
- * [Chat](https://discourse.odriverobotics.com/t/come-chat-with-us/281)
+### MRD Lab Edits
+ * **Test Inputs**: Axis class edited to add user-configurable voltage inputs
+ * **Data Collection**: communication protocol and Axis class edited to add a ring buffer of data saved during test inputs
+ * **Data Export**: odrivetool edited to access ring buffer, plot results, and export to CSV
