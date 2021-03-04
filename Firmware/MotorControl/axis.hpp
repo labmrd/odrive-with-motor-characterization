@@ -35,7 +35,7 @@ public:
         AXIS_STATE_CLOSED_LOOP_CONTROL = 8,  //<! run closed loop control
         AXIS_STATE_LOCKIN_SPIN = 9,       //<! run lockin spin
         AXIS_STATE_ENCODER_DIR_FIND = 10,
-        AXIS_STATE_TEST_INPUT = 11, //<! ERG - run test input and record data in charData
+        //AXIS_STATE_TEST_INPUT = 11, //<! ERG - run test input and record data in charData
     };
 
     struct LockinConfig_t {
@@ -87,12 +87,14 @@ public:
     */
 
     //ERG - Input type to be run by the characterize() function
+    /*
     enum InputType_t {
         INPUT_TYPE_IMPULSE = 0,		//set current_setpoint high briefly, then zero
         INPUT_TYPE_STEP = 1,		//set current_setpoint zero, then constant
         INPUT_TYPE_CHIRP = 2,		//sweep current_setpoint through a given frequency range
-        INPUT_TYPE_NOISE = 3, 	//if we have time, good to add later
+        INPUT_TYPE_NOISE = 3, 	    //white noise, completely random
     };
+
 
     //ERG - Parameters for input run by the characterize() function
     struct InputConfig_t {
@@ -108,10 +110,11 @@ public:
         float chirp_freqHigh = 1000.0f;	// [Hz]
         int noise_max = 80;             // [#] percentage of voltage limit
     };
+    */
 
     //ERG
-    void record_test_data(uint32_t timestep, float voltage_setpoint);
-    bool run_test_input();
+    //void record_test_data(uint32_t timestep, float voltage_setpoint);
+    //bool run_test_input();
 
     enum thread_signals {
         M_SIGNAL_PH_CURRENT_MEAS = 1u << 0
@@ -127,7 +130,7 @@ public:
     Axis(int axis_num,
             const AxisHardwareConfig_t& hw_config,
             Config_t& config,
-            InputConfig_t& input_config,
+            //InputConfig_t& input_config, //ERG
             Encoder& encoder,
             SensorlessEstimator& sensorless_estimator,
             Controller& controller,
@@ -232,8 +235,7 @@ public:
     int axis_num_;
     const AxisHardwareConfig_t& hw_config_;
     Config_t& config_;
-    //ERG QUESTION - all the ODrive config initializations are references e.g. Config_t& config_. Why? Do I need to do that?
-    InputConfig_t& input_config_;
+    //InputConfig_t& input_config_; //ERG 
 
     Encoder& encoder_;
     SensorlessEstimator& sensorless_estimator_;

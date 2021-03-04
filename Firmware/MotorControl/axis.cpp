@@ -6,11 +6,10 @@
 #include "utils.h"
 #include "odrive_main.h"
 
-//ERG - added input_config initialization
 Axis::Axis(int axis_num,
            const AxisHardwareConfig_t& hw_config,
            Config_t& config,
-           InputConfig_t& input_config,
+           //InputConfig_t& input_config, //ERG
            Encoder& encoder,
            SensorlessEstimator& sensorless_estimator,
            Controller& controller,
@@ -19,7 +18,7 @@ Axis::Axis(int axis_num,
     : axis_num_(axis_num),
       hw_config_(hw_config),
       config_(config),
-      input_config_(input_config),
+      //input_config_(input_config), //ERG
       encoder_(encoder),
       sensorless_estimator_(sensorless_estimator),
       controller_(controller),
@@ -317,7 +316,7 @@ bool Axis::run_idle_loop() {
     });
     return check_for_errors();
 }
-
+/*
 //ERG - saves latest data for motor characterization
 void Axis::record_test_data(uint32_t timestep, float voltage_setpoint) {
     if (charData_pos > CHARDATA_SIZE)
@@ -328,9 +327,10 @@ void Axis::record_test_data(uint32_t timestep, float voltage_setpoint) {
     charData[3][charData_pos] = encoder_.vel_estimate_;  // [rad/s]
     charData_pos++;
 }
-
+*/
 //ERG - Sends voltage commands to the motor to run a test input
 //ERG TODO - how to output loopCount for start and stop? Print to terminal? Add magic number to charData?
+/*
 bool Axis::run_test_input() {
     //Initialize and wait for [test_delay] seconds
     float voltage_lim = motor_.effective_current_lim();
@@ -448,9 +448,10 @@ bool Axis::run_test_input() {
             return false;
     }
 
-    record_test_data(-1, 0.0f);
+    record_test_data(-9, 0.0f);
     return true;
 }
+*/
 
 // Infinite loop that does calibration and enters main control loop as appropriate
 void Axis::run_state_machine_loop() {
@@ -508,6 +509,7 @@ void Axis::run_state_machine_loop() {
         bool status;
         switch (current_state_) {
             //ERG - added axis state to allow user to request test input
+            /*
             case AXIS_STATE_TEST_INPUT: {
                 if (motor_.config_.motor_type != Motor::MOTOR_TYPE_GIMBAL || controller_.config_.control_mode != Controller::CTRL_MODE_CURRENT_CONTROL) {
                     printf("To run test input, motor type must be set to MOTOR_TYPE_GIMBAL and control mode to CTRL_MODE_CURRENT_CONTROL.\n\
@@ -516,6 +518,7 @@ void Axis::run_state_machine_loop() {
 
                 status = run_test_input();
             } break;
+            */
 
             case AXIS_STATE_MOTOR_CALIBRATION: {
                 status = motor_.run_calibration();

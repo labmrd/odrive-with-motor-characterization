@@ -126,87 +126,87 @@ def start_liveplotter(get_var_callback):
 #ERG - modeled off of start_liveplotter, but for recording data to CSV instead
 #ERG TODO - change argument back to get_var_callback and uncomment fetch_data
 #Add an argument "dir" once I'm no longer testing
-def start_datarecorder():
-    """
-    Starts a datarecorder.
-    The variable that is recorded is retrieved from get_var_callback.
-    This function returns immediately and the datarecorder quits when
-    the user closes the plot window.
-    """
+#def start_datarecorder():
+    #"""
+    #Starts a datarecorder.
+    #The variable that is recorded is retrieved from get_var_callback.
+    #This function returns immediately and the datarecorder quits when
+    #the user closes the plot window.
+    #"""
 
     #ERG TODO - delete this once I'm done editing and want it to be an argument instead
-    dir = "C:\\Users\\Emily\\Documents\\1Graduate School\\2021 Spring\\Lab\\TestExports"
+    #dir = "C:\\Users\\Emily\\Documents\\1Graduate School\\2021 Spring\\Lab\\TestExports"
 
-    import matplotlib.pyplot as plt
+    #import matplotlib.pyplot as plt
 
-    cancellation_token = Event()
+    #cancellation_token = Event()
 
-    global vals
-    vals = []
-    def fetch_data(dir):
-        global vals
-        from datetime import datetime
+    #global vals
+    #vals = []
+    #def fetch_data(dir):
+        #global vals
+        #from datetime import datetime
 
-        start_time = datetime.now()
-        time_string = start_time.strftime("%d%m%Y_%H%M%S")
-        file_name = dir + '\\motorData' + time_string + '.csv'
+        #start_time = datetime.now()
+        #time_string = start_time.strftime("%d%m%Y_%H%M%S")
+        #file_name = dir + '\\motorData' + time_string + '.csv'
 
-        with open(file_name, "a+") as file:
-            file.write('%Motor characterization data\n')
-            file.write("%Each row's values were recorded on the same timestep\n\n")
-            file.write('%Operator:\n')
-            file.write('%Motor type:\n')
-            file.write('%ODrive axis:\n')
-            file.write('%Date:,' + start_time.strftime("%d/%m/%Y") + '\n')
-            file.write('%Start time:,' + start_time.strftime("%H:%M:%S") + '\n\n')
-            file.write('%timestep (8Hz),voltage,position,velocity\n')
-            file.write('%[#],[V],[rad],[rad/s]\n')
+        #with open(file_name, "a+") as file:
+            #file.write('%Motor characterization data\n')
+            #file.write("%Each row's values were recorded on the same timestep\n\n")
+            #file.write('%Operator:\n')
+            #file.write('%Motor type:\n')
+            #file.write('%ODrive axis:\n')
+            #file.write('%Date:,' + start_time.strftime("%d/%m/%Y") + '\n')
+            #file.write('%Start time:,' + start_time.strftime("%H:%M:%S") + '\n\n')
+            #file.write('%timestep (8Hz),voltage,position,velocity\n')
+            #file.write('%[#],[V],[rad],[rad/s]\n')
 
-            while not cancellation_token.is_set():
-                try:
-                    #data = get_var_callback()
-                    data = '231,2.6,1.369,0.54' # ERG TODO - remove this and uncomment line above
-                except Exception as ex:
-                    print(str(ex))
-                    time.sleep(1)
-                    continue
+            #while not cancellation_token.is_set():
+                #try:
+                #    #data = get_var_callback()
+                #    data = '231,2.6,1.369,0.54' # ERG TODO - remove this and uncomment line above
+                #except Exception as ex:
+                #    print(str(ex))
+                #    time.sleep(1)
+                #    continue
                 #ERG TODO - add duplicate cleanup and save "latest received" timestamp
                 # Probably add any new data to a queue and have file.write use that instead of vals
-                vals.append(data)
-                for line in vals: #This would work if vals were a list of strings; how to make it work here?
-                        file.write(line + ';\n')
+                #vals.append(data)
+                #for line in vals: #This would work if vals were a list of strings; how to make it work here?
+                #        file.write(line + ';\n')
 
-                if len(vals) > num_samples:
-                    vals = vals[-num_samples:]
-                time.sleep(1/data_rate)
+                #if len(vals) > num_samples:
+                #    vals = vals[-num_samples:]
+                #time.sleep(1/data_rate)
 
-    def plot_data():
-        global vals
+    #def plot_data():
+        #global vals
 
-        plt.ion()
+        #plt.ion()
 
         # Make sure the script terminates when the user closes the plotter
-        def did_close(evt):
-            cancellation_token.set()
-        fig = plt.figure()
-        fig.canvas.mpl_connect('close_event', did_close)
+        #def did_close(evt):
+        #    cancellation_token.set()
+        #fig = plt.figure()
+        #fig.canvas.mpl_connect('close_event', did_close)
 
-        while not cancellation_token.is_set():
-            plt.clf()
-            plt.plot(vals)
-            plt.legend(list(range(len(vals))))
-            fig.canvas.draw()
-            fig.canvas.start_event_loop(1/plot_rate)
+        #while not cancellation_token.is_set():
+        #    plt.clf()
+        #    plt.plot(vals)
+        #    plt.legend(list(range(len(vals))))
+        #    fig.canvas.draw()
+        #    fig.canvas.start_event_loop(1/plot_rate)
 
-    fetch_t = threading.Thread(target=fetch_data, args=(dir,))
-    fetch_t.daemon = True
-    fetch_t.start()
+    #fetch_t = threading.Thread(target=fetch_data, args=(dir,))
+    #fetch_t.daemon = True
+    #fetch_t.start()
     
-    plot_t = threading.Thread(target=plot_data)
-    plot_t.daemon = True
-    plot_t.start()
+    #plot_t = threading.Thread(target=plot_data)
+    #plot_t.daemon = True
+    #plot_t.start()
 
-    return cancellation_token;
+    #return cancellation_token;
 
 def print_drv_regs(name, motor):
     """
