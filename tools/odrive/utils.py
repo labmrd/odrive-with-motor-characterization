@@ -124,9 +124,8 @@ def start_liveplotter(get_var_callback):
     #plot_data()
 
 #ERG - modeled off of start_liveplotter, but for recording data to CSV instead
-#ERG TODO - change argument back to get_var_callback and uncomment fetch_data
 #Add an argument "dir" once I'm no longer testing
-def start_datarecorder():
+def start_datarecorder(odrv):
     """
     Starts a datarecorder.
     The variable that is recorded is retrieved from get_var_callback.
@@ -164,10 +163,8 @@ def start_datarecorder():
 
             while not cancellation_token.is_set():
                 try:
-                    #data = get_var_callback()
-                    data = [1,2.2,1500,0.1]
-                    #data = [odrv0.motorCharacterizeData.timestep,odrv0.motorCharacterizeData.voltage,
-                    #        odrv0.motorCharacterizeData.pos,odrv0.motorCharacterizeData.vel]
+                    data = [odrv.motorCharacterizeData.timestep,odrv.motorCharacterizeData.voltage,
+                            odrv.motorCharacterizeData.pos,odrv.motorCharacterizeData.vel]
                 except Exception as ex:
                     print(str(ex))
                     time.sleep(1)
