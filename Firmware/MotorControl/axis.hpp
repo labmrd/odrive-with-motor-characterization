@@ -87,7 +87,7 @@ public:
     */
 
     //ERG - Input type to be run by the characterize() function
-    /*
+    
     enum InputType_t {
         INPUT_TYPE_IMPULSE = 0,		//set current_setpoint high briefly, then zero
         INPUT_TYPE_STEP = 1,		//set current_setpoint zero, then constant
@@ -110,7 +110,7 @@ public:
         float chirp_freqHigh = 1000.0f;	// [Hz]
         int noise_max = 80;             // [#] percentage of voltage limit
     };
-    */
+    
 
     //ERG
     //void record_test_data(uint32_t timestep, float voltage_setpoint);
@@ -130,7 +130,7 @@ public:
     Axis(int axis_num,
             const AxisHardwareConfig_t& hw_config,
             Config_t& config,
-            //InputConfig_t& input_config, //ERG
+            InputConfig_t& input_config, //ERG
             Encoder& encoder,
             SensorlessEstimator& sensorless_estimator,
             Controller& controller,
@@ -235,7 +235,7 @@ public:
     int axis_num_;
     const AxisHardwareConfig_t& hw_config_;
     Config_t& config_;
-    //InputConfig_t& input_config_; //ERG 
+    InputConfig_t& input_config_; //ERG 
 
     Encoder& encoder_;
     SensorlessEstimator& sensorless_estimator_;
