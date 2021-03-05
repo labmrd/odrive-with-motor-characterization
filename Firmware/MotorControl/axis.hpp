@@ -87,7 +87,7 @@ public:
     */
 
     //ERG - Input type to be run by the characterize() function
-    /*
+    
     enum InputType_t {
         INPUT_TYPE_IMPULSE = 0,		//set current_setpoint high briefly, then zero
         INPUT_TYPE_STEP = 1,		//set current_setpoint zero, then constant
@@ -102,15 +102,15 @@ public:
         float test_delay = 3.0f;        // [s]
         float test_duration = 10.0f;	// [s]
         float impulse_voltage = 2.0f;   // [V]
-        uint16_t impulse_peakDuration = 1;   // number of loopCount cycles, which happen at 8kHz
+        uint32_t impulse_peakDuration = 1;   // number of loopCount cycles, which happen at 8kHz
         float step_voltage = 1.0f;		// [V]
         float chirp_amplitude = 0.5f;	// [V]
         float chirp_midline = 1.5f;		// [V]
         float chirp_freqLow = 1.0f;		// [Hz]
         float chirp_freqHigh = 1000.0f;	// [Hz]
-        int noise_max = 80;             // [#] percentage of voltage limit
+        uint32_t noise_max = 80;             // [#] percentage of voltage limit
     };
-    */
+    
 
     //ERG
     //void record_test_data(uint32_t timestep, float voltage_setpoint);
@@ -130,7 +130,7 @@ public:
     Axis(int axis_num,
             const AxisHardwareConfig_t& hw_config,
             Config_t& config,
-            //InputConfig_t& input_config, //ERG
+            InputConfig_t& input_config, //ERG
             Encoder& encoder,
             SensorlessEstimator& sensorless_estimator,
             Controller& controller,
@@ -235,7 +235,7 @@ public:
     int axis_num_;
     const AxisHardwareConfig_t& hw_config_;
     Config_t& config_;
-    //InputConfig_t& input_config_; //ERG 
+    InputConfig_t& input_config_; //ERG 
 
     Encoder& encoder_;
     SensorlessEstimator& sensorless_estimator_;
@@ -318,6 +318,19 @@ public:
                     make_protocol_property("finish_on_distance", &config_.lockin.finish_on_distance),
                     make_protocol_property("finish_on_enc_idx", &config_.lockin.finish_on_enc_idx)
                 )
+            ),
+            make_protocol_object("input_config",
+                make_protocol_property("input_type", &input_config_.input_type),
+                make_protocol_property("test_delay", &input_config_.test_delay),
+                make_protocol_property("test_duration", &input_config_.test_duration),
+                make_protocol_property("impulse_voltage", &input_config_.impulse_voltage),
+                make_protocol_property("impulse_peakDuration", &input_config_.impulse_peakDuration),
+                make_protocol_property("step_voltage", &input_config_.step_voltage),
+                make_protocol_property("chirp_amplitude", &input_config_.chirp_amplitude),
+                make_protocol_property("chirp_midline", &input_config_.chirp_midline),
+                make_protocol_property("chirp_freqLow", &input_config_.chirp_freqLow),
+                make_protocol_property("chirp_freqHigh", &input_config_.chirp_freqHigh),
+                make_protocol_property("noise_max", &input_config_.noise_max)
             ),
             make_protocol_object("motor", motor_.make_protocol_definitions()),
             make_protocol_object("controller", controller_.make_protocol_definitions()),
