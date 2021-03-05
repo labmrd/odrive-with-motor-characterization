@@ -123,8 +123,7 @@ def start_liveplotter(get_var_callback):
     return cancellation_token;
     #plot_data()
 
-#ERG - modeled off of start_liveplotter, but for recording data to CSV instead
-#Add an argument "dir" once I'm no longer testing
+#ERG - modeled off of start_liveplotter; exports motorCharacterizeData to CSV
 def start_datarecorder(odrv):
     """
     Starts a datarecorder.
