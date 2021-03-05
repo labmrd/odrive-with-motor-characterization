@@ -110,10 +110,10 @@ struct CharData_t {
 */
 
 // ERG - modeling this system after the oscilloscope; defined here, initialized in communication.cpp
-#define CHARDATA_SIZE 128
+#define MOTORCHARACTERIZEDATA_SIZE 128
 // extern CharData_t charData[CHARDATA_SIZE]; ERG TODO - either uncomment or delete
-extern float charData[4][CHARDATA_SIZE]; //the 4x128 version
-extern size_t charData_pos;
+extern float motorCharacterizeData[4][MOTORCHARACTERIZEDATA_SIZE]; //the 4x128 version
+extern size_t motorCharacterizeData_pos;
 
 
 

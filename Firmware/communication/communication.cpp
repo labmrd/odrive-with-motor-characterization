@@ -78,17 +78,16 @@ auto make_protocol_definitions(PWMMapping_t& mapping) {
     );
 }
 
-/* ERG - Sub-tree for charData access -----------------------------------------------*/
+/* ERG - Sub-tree for motorCharacterizeData access ---------------------------*/
 
-auto make_charData_definitions(size_t idx) {
+auto make_motorCharacterizeData_definitions(size_t idx) {
     return make_protocol_member_list(
-        make_protocol_property("timestep", &charData[0][idx]),
-        make_protocol_property("voltage", &charData[1][idx]),
-        make_protocol_property("pos", &charData[2][idx]),
-        make_protocol_property("vel", &charData[3][idx])
+        make_protocol_property("timestep", &motorCharacterizeData[0][idx]),
+        make_protocol_property("voltage", &motorCharacterizeData[1][idx]),
+        make_protocol_property("pos", &motorCharacterizeData[2][idx]),
+        make_protocol_property("vel", &motorCharacterizeData[3][idx])
     );
 }
-
 
 /* Function implementations --------------------------------------------------*/
 
@@ -109,8 +108,8 @@ size_t oscilloscope_pos = 0;
 
 // ERG - modeling characterization data structure after oscilloscope
 //CharData_t charData[CHARDATA_SIZE] = {0}; ERG TODO - either uncomment or delete
-float charData[4][CHARDATA_SIZE] = {0}; //the 4x128 version
-size_t charData_pos = 0;
+float motorCharacterizeData[4][MOTORCHARACTERIZEDATA_SIZE] = {0}; //the 4x128 version
+size_t motorCharacterizeData_pos = 0;
 
 static CAN_context can1_ctx;
 
@@ -187,7 +186,7 @@ static inline auto make_obj_tree() {
         make_protocol_object("axis0", axes[0]->make_protocol_definitions()),
         make_protocol_object("axis1", axes[1]->make_protocol_definitions()),
         make_protocol_object("can", can1_ctx.make_protocol_definitions()),
-        make_protocol_object("charData", make_charData_definitions(charData_pos)), //ERG - allows odrivetool to access charData
+        make_protocol_object("motorCharacterizeData", make_motorCharacterizeData_definitions(motorCharacterizeData_pos)), //ERG
         make_protocol_property("test_property", &test_property),
         make_protocol_function("test_function", static_functions, &StaticFunctions::test_function, "delta"),
         make_protocol_function("get_oscilloscope_val", static_functions, &StaticFunctions::get_oscilloscope_val, "index"),
