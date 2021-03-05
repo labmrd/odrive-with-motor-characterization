@@ -165,16 +165,19 @@ def start_datarecorder():
             while not cancellation_token.is_set():
                 try:
                     #data = get_var_callback()
-                    data = '231,2.6,1.369,0.54' # ERG TODO - remove this and uncomment line above
+                    data = [1,2.2,1500,0.1]
+                    #data = [odrv0.motorCharacterizeData.timestep,odrv0.motorCharacterizeData.voltage,
+                    #        odrv0.motorCharacterizeData.pos,odrv0.motorCharacterizeData.vel]
                 except Exception as ex:
                     print(str(ex))
                     time.sleep(1)
                     continue
-                #ERG TODO - add duplicate cleanup and save "latest received" timestamp
-                # Probably add any new data to a queue and have file.write use that instead of vals
+                
+                #Save latest line and write it to csv
+                #TODO - if I can flush the whole buffer, write all new lines in vals
                 vals.append(data)
-                for line in vals: #This would work if vals were a list of strings; how to make it work here?
-                        file.write(line + ';\n')
+                str_data = map(str,data)
+                file.write(",".join(str_data) + ';\n')
 
                 if len(vals) > num_samples:
                     vals = vals[-num_samples:]
