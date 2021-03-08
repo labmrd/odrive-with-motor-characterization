@@ -509,13 +509,13 @@ void Axis::run_state_machine_loop() {
         // Handlers should exit if requested_state != AXIS_STATE_UNDEFINED
         bool status;
         switch (current_state_) {
-            //ERG - added axis state to allow user to request test input for motor characterization
             
+            //ERG - added axis state to allow user to request test input for motor characterization
             case AXIS_STATE_MOTOR_CHARACTERIZE_INPUT: {
-                //if (motor_.config_.motor_type != Motor::MOTOR_TYPE_GIMBAL || controller_.config_.control_mode != Controller::CTRL_MODE_CURRENT_CONTROL) {
-                //    printf("To run test input, motor type must be set to MOTOR_TYPE_GIMBAL and control mode to CTRL_MODE_CURRENT_CONTROL.\n\
-                //            Make sure voltage limit is set appropriately using the motor_.current_lim parameter.\n");
-                //    goto invalid_state_label;}
+                if (motor_.config_.motor_type != Motor::MOTOR_TYPE_GIMBAL || controller_.config_.control_mode != Controller::CTRL_MODE_CURRENT_CONTROL) {
+                    printf("To run test input, motor type must be set to MOTOR_TYPE_GIMBAL and control mode to CTRL_MODE_CURRENT_CONTROL.\n\
+                            Make sure voltage limit is set appropriately using the motor_.current_lim parameter.\n");
+                    goto invalid_state_label;}
                 
                 status = run_motor_characterize_input();
             } break;
