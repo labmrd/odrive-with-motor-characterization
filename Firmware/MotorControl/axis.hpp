@@ -35,7 +35,7 @@ public:
         AXIS_STATE_CLOSED_LOOP_CONTROL = 8,  //<! run closed loop control
         AXIS_STATE_LOCKIN_SPIN = 9,       //<! run lockin spin
         AXIS_STATE_ENCODER_DIR_FIND = 10,
-        //AXIS_STATE_TEST_INPUT = 11, //<! ERG - run test input and record data in charData
+        AXIS_STATE_MOTOR_CHARACTERIZE_INPUT = 11, //<! ERG - run test input and record data in charData
     };
 
     struct LockinConfig_t {
@@ -114,7 +114,7 @@ public:
 
     //ERG
     //void record_test_data(uint32_t timestep, float voltage_setpoint);
-    //bool run_test_input();
+    bool run_motor_characterize_input();
 
     enum thread_signals {
         M_SIGNAL_PH_CURRENT_MEAS = 1u << 0

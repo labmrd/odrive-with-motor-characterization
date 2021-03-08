@@ -328,15 +328,15 @@ void Axis::record_test_data(uint32_t timestep, float voltage_setpoint) {
     charData_pos++;
 }
 */
-//ERG - Sends voltage commands to the motor to run a test input
-//ERG TODO - how to output loopCount for start and stop? Print to terminal? Add magic number to charData?
-/*
-bool Axis::run_test_input() {
+//ERG - Sends voltage commands to the motor to run a test input for motor characterization
+bool Axis::run_motor_characterize_input() {
     //Initialize and wait for [test_delay] seconds
     float voltage_lim = motor_.effective_current_lim();
     uint16_t counter = 0; //only used for impulse; simplify if convenient
     float x = 0.0f;
-
+    motorCharacterizeData[0][motorCharacterizeData_pos] = loop_counter_;
+                    
+    /*
     uint32_t loopCountStart = loop_counter_;
     record_test_data(-1, 0.0f);
     run_control_loop([&]() {
@@ -449,9 +449,10 @@ bool Axis::run_test_input() {
     }
 
     record_test_data(-9, 0.0f);
+    */
     return true;
 }
-*/
+
 
 // Infinite loop that does calibration and enters main control loop as appropriate
 void Axis::run_state_machine_loop() {
@@ -508,17 +509,17 @@ void Axis::run_state_machine_loop() {
         // Handlers should exit if requested_state != AXIS_STATE_UNDEFINED
         bool status;
         switch (current_state_) {
-            //ERG - added axis state to allow user to request test input
-            /*
-            case AXIS_STATE_TEST_INPUT: {
-                if (motor_.config_.motor_type != Motor::MOTOR_TYPE_GIMBAL || controller_.config_.control_mode != Controller::CTRL_MODE_CURRENT_CONTROL) {
-                    printf("To run test input, motor type must be set to MOTOR_TYPE_GIMBAL and control mode to CTRL_MODE_CURRENT_CONTROL.\n\
-                            Make sure voltage limit is set appropriately using the motor_.current_lim parameter.\n");
-                    goto invalid_state_label;}
-
-                status = run_test_input();
+            //ERG - added axis state to allow user to request test input for motor characterization
+            
+            case AXIS_STATE_MOTOR_CHARACTERIZE_INPUT: {
+                //if (motor_.config_.motor_type != Motor::MOTOR_TYPE_GIMBAL || controller_.config_.control_mode != Controller::CTRL_MODE_CURRENT_CONTROL) {
+                //    printf("To run test input, motor type must be set to MOTOR_TYPE_GIMBAL and control mode to CTRL_MODE_CURRENT_CONTROL.\n\
+                //            Make sure voltage limit is set appropriately using the motor_.current_lim parameter.\n");
+                //    goto invalid_state_label;}
+                
+                status = run_motor_characterize_input();
             } break;
-            */
+            
 
             case AXIS_STATE_MOTOR_CALIBRATION: {
                 status = motor_.run_calibration();
