@@ -187,6 +187,7 @@ static inline auto make_obj_tree() {
         make_protocol_object("axis1", axes[1]->make_protocol_definitions()),
         make_protocol_object("can", can1_ctx.make_protocol_definitions()),
         make_protocol_object("motorCharacterizeData", make_motorCharacterizeData_definitions()), //ERG
+        make_protocol_property("motorCharacterizeData_pos", &motorCharacterizeData_pos),
         make_protocol_function("test_function", static_functions, &StaticFunctions::test_function, "delta"),
         make_protocol_function("get_oscilloscope_val", static_functions, &StaticFunctions::get_oscilloscope_val, "index"),
         make_protocol_function("get_adc_voltage", static_functions, &StaticFunctions::get_adc_voltage_, "gpio"),
