@@ -316,34 +316,33 @@ bool Axis::run_idle_loop() {
     });
     return check_for_errors();
 }
-/*
+
 //ERG - saves latest data for motor characterization
-void Axis::record_test_data(uint32_t timestep, float voltage_setpoint) {
-    if (charData_pos > CHARDATA_SIZE)
-        charData_pos = 0;
-    charData[0][charData_pos] = timestep;           // [#]
-    charData[1][charData_pos] = voltage_setpoint;        // [V]
-    charData[2][charData_pos] = encoder_.pos_estimate_;  // [rad]
-    charData[3][charData_pos] = encoder_.vel_estimate_;  // [rad/s]
-    charData_pos++;
+void Axis::record_motor_characterize_data(float timestep, float voltage_setpoint) {
+    motorCharacterizeData_pos++;
+    if (motorCharacterizeData_pos > MOTORCHARACTERIZEDATA_SIZE)
+        motorCharacterizeData_pos = 0;
+    motorCharacterizeData[0][motorCharacterizeData_pos] = timestep;                // [#]static_cast<float>(timestep)
+    motorCharacterizeData[1][motorCharacterizeData_pos] = voltage_setpoint;        // [V]
+    motorCharacterizeData[2][motorCharacterizeData_pos] = encoder_.pos_estimate_;  // [rad]
+    motorCharacterizeData[3][motorCharacterizeData_pos] = encoder_.vel_estimate_;  // [rad/s]
 }
-*/
+
 //ERG - Sends voltage commands to the motor to run a test input for motor characterization
 bool Axis::run_motor_characterize_input() {
     //Initialize and wait for [test_delay] seconds
-    float voltage_lim = motor_.effective_current_lim();
-    uint16_t counter = 0; //only used for impulse; simplify if convenient
-    float x = 0.0f;
-    motorCharacterizeData[0][motorCharacterizeData_pos] = loop_counter_;
-                    
+    //float voltage_lim = motor_.effective_current_lim();
+    //uint16_t counter = 0; //only used for impulse; simplify if convenient
+    //float x = 0.0f;
+    //uint32_t loopCountStart = loop_counter_;
+    record_motor_characterize_data(-1.0f, 0.0f);
+    
     /*
-    uint32_t loopCountStart = loop_counter_;
-    record_test_data(-1, 0.0f);
     run_control_loop([&]() {
         float phase_vel = 2*M_PI * encoder_.vel_estimate_ / (float)encoder_.config_.cpr * motor_.config_.pole_pairs;
         if (!motor_.update(0.0f, encoder_.phase_, phase_vel))
             return false;
-        record_test_data(loop_counter_-loopCountStart, 0.0f);
+        record_motor_characterize_data(static_cast<float>(loop_counter_-loopCountStart), 0.0f);
 
         x += current_meas_period / input_config_.test_delay;
         return x < 1.0f;
@@ -509,7 +508,7 @@ void Axis::run_state_machine_loop() {
         // Handlers should exit if requested_state != AXIS_STATE_UNDEFINED
         bool status;
         switch (current_state_) {
-            
+
             //ERG - added axis state to allow user to request test input for motor characterization
             case AXIS_STATE_MOTOR_CHARACTERIZE_INPUT: {
                 if (motor_.config_.motor_type != Motor::MOTOR_TYPE_GIMBAL || controller_.config_.control_mode != Controller::CTRL_MODE_CURRENT_CONTROL) {

@@ -113,7 +113,7 @@ struct CharData_t {
 #define MOTORCHARACTERIZEDATA_SIZE 128
 // extern CharData_t charData[CHARDATA_SIZE]; ERG TODO - either uncomment or delete
 extern float motorCharacterizeData[4][MOTORCHARACTERIZEDATA_SIZE]; //the 4x128 version
-extern size_t motorCharacterizeData_pos;
+extern uint32_t motorCharacterizeData_pos;
 
 
 

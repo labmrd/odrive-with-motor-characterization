@@ -66,8 +66,6 @@ const uint8_t fw_version_unreleased = FW_VERSION_UNRELEASED; // 0 for official r
 osThreadId comm_thread;
 volatile bool endpoint_list_valid = false;
 
-static uint32_t test_property = 0;
-
 /* Private function prototypes -----------------------------------------------*/
 
 auto make_protocol_definitions(PWMMapping_t& mapping) {
@@ -80,12 +78,14 @@ auto make_protocol_definitions(PWMMapping_t& mapping) {
 
 /* ERG - Sub-tree for motorCharacterizeData access ---------------------------*/
 
-auto make_motorCharacterizeData_definitions(size_t idx) {
+auto make_motorCharacterizeData_definitions() {
+    //idx = (idx == 0) ? MOTORCHARACTERIZEDATA_SIZE : idx - 1;
+    uint32_t* idx = &motorCharacterizeData_pos;
     return make_protocol_member_list(
-        make_protocol_property("timestep", &motorCharacterizeData[0][idx]),
-        make_protocol_property("voltage", &motorCharacterizeData[1][idx]),
-        make_protocol_property("pos", &motorCharacterizeData[2][idx]),
-        make_protocol_property("vel", &motorCharacterizeData[3][idx])
+        make_protocol_property("timestep", &motorCharacterizeData[0][*idx]),
+        make_protocol_property("voltage", &motorCharacterizeData[1][*idx]),
+        make_protocol_property("pos", &motorCharacterizeData[2][*idx]),
+        make_protocol_property("vel", &motorCharacterizeData[3][*idx])
     );
 }
 
@@ -109,7 +109,7 @@ size_t oscilloscope_pos = 0;
 // ERG - modeling characterization data structure after oscilloscope
 //CharData_t charData[CHARDATA_SIZE] = {0}; ERG TODO - either uncomment or delete
 float motorCharacterizeData[4][MOTORCHARACTERIZEDATA_SIZE] = {0}; //the 4x128 version
-size_t motorCharacterizeData_pos = 0;
+uint32_t motorCharacterizeData_pos = 0;
 
 static CAN_context can1_ctx;
 
@@ -186,8 +186,7 @@ static inline auto make_obj_tree() {
         make_protocol_object("axis0", axes[0]->make_protocol_definitions()),
         make_protocol_object("axis1", axes[1]->make_protocol_definitions()),
         make_protocol_object("can", can1_ctx.make_protocol_definitions()),
-        make_protocol_object("motorCharacterizeData", make_motorCharacterizeData_definitions(motorCharacterizeData_pos)), //ERG
-        make_protocol_property("test_property", &test_property),
+        make_protocol_object("motorCharacterizeData", make_motorCharacterizeData_definitions()), //ERG
         make_protocol_function("test_function", static_functions, &StaticFunctions::test_function, "delta"),
         make_protocol_function("get_oscilloscope_val", static_functions, &StaticFunctions::get_oscilloscope_val, "index"),
         make_protocol_function("get_adc_voltage", static_functions, &StaticFunctions::get_adc_voltage_, "gpio"),

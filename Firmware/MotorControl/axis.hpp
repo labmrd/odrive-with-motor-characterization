@@ -113,7 +113,7 @@ public:
     
 
     //ERG
-    //void record_test_data(uint32_t timestep, float voltage_setpoint);
+    void record_motor_characterize_data(float timestep, float voltage_setpoint);
     bool run_motor_characterize_input();
 
     enum thread_signals {
