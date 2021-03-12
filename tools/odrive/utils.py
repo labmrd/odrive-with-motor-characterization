@@ -162,8 +162,11 @@ def start_datarecorder(odrv):
 
             while not cancellation_token.is_set():
                 try:
-                    data = [odrv.motorCharacterizeData.timestep,odrv.motorCharacterizeData.voltage,
-                            odrv.motorCharacterizeData.pos,odrv.motorCharacterizeData.vel]
+                    idx = odrv.motorCharacterizeData_pos #ERG TODO - rename one of the pos to avoid ambiguity
+                    data = [odrv.get_motorCharacterizeData_timestep(idx),
+                            odrv.get_motorCharacterizeData_voltage(idx),
+                            odrv.get_motorCharacterizeData_pos(idx),
+                            odrv.get_motorCharacterizeData_vel(idx)]
                 except Exception as ex:
                     print(str(ex))
                     time.sleep(1)
