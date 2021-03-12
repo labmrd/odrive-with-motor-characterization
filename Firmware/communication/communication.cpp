@@ -77,7 +77,8 @@ auto make_protocol_definitions(PWMMapping_t& mapping) {
 }
 
 /* ERG - Sub-tree for motorCharacterizeData access ---------------------------*/
-
+//ERG TODO - remove this if we're not using it
+/*
 auto make_motorCharacterizeData_definitions() {
     //idx = (idx == 0) ? MOTORCHARACTERIZEDATA_SIZE : idx - 1;
     uint32_t* idx = &motorCharacterizeData_pos;
@@ -88,6 +89,7 @@ auto make_motorCharacterizeData_definitions() {
         make_protocol_property("vel", &motorCharacterizeData[3][*idx])
     );
 }
+*/
 
 /* Function implementations --------------------------------------------------*/
 
@@ -124,6 +126,10 @@ public:
     void enter_dfu_mode_helper() { enter_dfu_mode(); }
     float get_oscilloscope_val(uint32_t index) { return oscilloscope[index]; }
     float get_adc_voltage_(uint32_t gpio) { return get_adc_voltage(get_gpio_port_by_pin(gpio), get_gpio_pin_by_pin(gpio)); }
+    float get_motorCharacterizeData_timestep(uint32_t index) { return motorCharacterizeData[0][index]; } //ERG
+    float get_motorCharacterizeData_voltage(uint32_t index) { return motorCharacterizeData[1][index]; } //ERG
+    float get_motorCharacterizeData_pos(uint32_t index) { return motorCharacterizeData[2][index]; } //ERG
+    float get_motorCharacterizeData_vel(uint32_t index) { return motorCharacterizeData[3][index]; } //ERG
     int32_t test_function(int32_t delta) { static int cnt = 0; return cnt += delta; }
 } static_functions;
 
@@ -186,11 +192,15 @@ static inline auto make_obj_tree() {
         make_protocol_object("axis0", axes[0]->make_protocol_definitions()),
         make_protocol_object("axis1", axes[1]->make_protocol_definitions()),
         make_protocol_object("can", can1_ctx.make_protocol_definitions()),
-        make_protocol_object("motorCharacterizeData", make_motorCharacterizeData_definitions()), //ERG
+        //make_protocol_object("motorCharacterizeData", make_motorCharacterizeData_definitions()), //ERG TODO - remove
         make_protocol_property("motorCharacterizeData_pos", &motorCharacterizeData_pos),
         make_protocol_function("test_function", static_functions, &StaticFunctions::test_function, "delta"),
         make_protocol_function("get_oscilloscope_val", static_functions, &StaticFunctions::get_oscilloscope_val, "index"),
         make_protocol_function("get_adc_voltage", static_functions, &StaticFunctions::get_adc_voltage_, "gpio"),
+        make_protocol_function("get_motorCharacterizeData_timestep", static_functions, &StaticFunctions::get_motorCharacterizeData_timestep, "index"), //ERG
+        make_protocol_function("get_motorCharacterizeData_voltage", static_functions, &StaticFunctions::get_motorCharacterizeData_voltage, "index"), //ERG
+        make_protocol_function("get_motorCharacterizeData_pos", static_functions, &StaticFunctions::get_motorCharacterizeData_pos, "index"), //ERG
+        make_protocol_function("get_motorCharacterizeData_vel", static_functions, &StaticFunctions::get_motorCharacterizeData_vel, "index"), //ERG
         make_protocol_function("save_configuration", static_functions, &StaticFunctions::save_configuration_helper),
         make_protocol_function("erase_configuration", static_functions, &StaticFunctions::erase_configuration_helper),
         make_protocol_function("reboot", static_functions, &StaticFunctions::NVIC_SystemReset_helper),
