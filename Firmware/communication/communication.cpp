@@ -76,21 +76,6 @@ auto make_protocol_definitions(PWMMapping_t& mapping) {
     );
 }
 
-/* ERG - Sub-tree for motorCharacterizeData access ---------------------------*/
-//ERG TODO - remove this if we're not using it
-/*
-auto make_motorCharacterizeData_definitions() {
-    //idx = (idx == 0) ? MOTORCHARACTERIZEDATA_SIZE : idx - 1;
-    uint32_t* idx = &motorCharacterizeData_pos;
-    return make_protocol_member_list(
-        make_protocol_property("timestep", &motorCharacterizeData[0][*idx]),
-        make_protocol_property("voltage", &motorCharacterizeData[1][*idx]),
-        make_protocol_property("pos", &motorCharacterizeData[2][*idx]),
-        make_protocol_property("vel", &motorCharacterizeData[3][*idx])
-    );
-}
-*/
-
 /* Function implementations --------------------------------------------------*/
 
 void init_communication(void) {
@@ -192,7 +177,6 @@ static inline auto make_obj_tree() {
         make_protocol_object("axis0", axes[0]->make_protocol_definitions()),
         make_protocol_object("axis1", axes[1]->make_protocol_definitions()),
         make_protocol_object("can", can1_ctx.make_protocol_definitions()),
-        //make_protocol_object("motorCharacterizeData", make_motorCharacterizeData_definitions()), //ERG TODO - remove
         make_protocol_property("motorCharacterizeData_pos", &motorCharacterizeData_pos),
         make_protocol_function("test_function", static_functions, &StaticFunctions::test_function, "delta"),
         make_protocol_function("get_oscilloscope_val", static_functions, &StaticFunctions::get_oscilloscope_val, "index"),
