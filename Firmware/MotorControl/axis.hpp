@@ -319,7 +319,7 @@ public:
                     make_protocol_property("finish_on_enc_idx", &config_.lockin.finish_on_enc_idx)
                 )
             ),
-            make_protocol_object("input_config",
+            make_protocol_object("input_config", //ERG
                 make_protocol_property("input_type", &input_config_.input_type),
                 make_protocol_property("test_delay", &input_config_.test_delay),
                 make_protocol_property("test_duration", &input_config_.test_duration),
