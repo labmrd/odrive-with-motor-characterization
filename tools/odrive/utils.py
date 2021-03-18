@@ -60,7 +60,7 @@ def dump_errors(odrv, clear=False):
             else:
                 print(prefix + _VT100Colors['green'] + "no error" + _VT100Colors['default'])
 
-data_rate = 10
+data_rate = 1000
 plot_rate = 10
 num_samples = 1000
 def start_liveplotter(get_var_callback):
@@ -120,7 +120,7 @@ def start_liveplotter(get_var_callback):
     plot_t.start()
     
 
-    return cancellation_token;
+    return cancellation_token
     #plot_data()
 
 #ERG - modeled off of start_liveplotter; exports motorCharacterizeData to CSV
@@ -174,7 +174,7 @@ def start_datarecorder(odrv):
                 
                 #Save latest line and write it to csv
                 #TODO - if I can flush the whole buffer, write all new lines in vals
-                vals.append(data)
+                vals.append(data[1:4])
                 str_data = map(str,data)
                 file.write(",".join(str_data) + ';\n')
 
@@ -195,8 +195,9 @@ def start_datarecorder(odrv):
 
         while not cancellation_token.is_set():
             plt.clf()
-            plt.plot(vals)
-            plt.legend(list(range(len(vals))))
+            plt.plot(vals, scalex=True, scaley=False)
+            plt.ylim(-odrv.axis0.motor.config.current_lim, odrv.axis0.motor.config.current_lim)
+            plt.legend(('Voltage','Position','Velocity'))
             fig.canvas.draw()
             fig.canvas.start_event_loop(1/plot_rate)
 
@@ -208,7 +209,7 @@ def start_datarecorder(odrv):
     plot_t.daemon = True
     plot_t.start()
 
-    return cancellation_token;
+    return cancellation_token
 
 def print_drv_regs(name, motor):
     """
