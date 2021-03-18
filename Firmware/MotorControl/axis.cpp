@@ -324,8 +324,8 @@ void Axis::record_motor_characterize_data(float timestep, float voltage_setpoint
         motorCharacterizeData_pos = 0;
     motorCharacterizeData[0][motorCharacterizeData_pos] = timestep;                // [#]static_cast<float>(timestep)
     motorCharacterizeData[1][motorCharacterizeData_pos] = voltage_setpoint;        // [V]
-    motorCharacterizeData[2][motorCharacterizeData_pos] = encoder_.pos_estimate_;  // [rad]
-    motorCharacterizeData[3][motorCharacterizeData_pos] = encoder_.vel_estimate_;  // [rad/s]
+    motorCharacterizeData[2][motorCharacterizeData_pos] = encoder_.pos_estimate_;  // [count]
+    motorCharacterizeData[3][motorCharacterizeData_pos] = encoder_.vel_estimate_;  // [count/s]
 }
 
 //ERG - Sends voltage commands to the motor to run a test input for motor characterization
@@ -400,7 +400,7 @@ bool Axis::run_motor_characterize_input() {
                 //Given phi(0) = 0 and rate of exponential change k = (f1/f0)^(1/T)
                 float exponent = 1 / input_config_.test_duration;
                 float k = pow(input_config_.chirp_freqHigh / input_config_.chirp_freqLow, exponent);
-                float scaling_term = (pow(k,x) - 1) / log(k);
+                float scaling_term = (pow(k,x*input_config_.test_duration) - 1) / log(k);
                 float chirp_phase = 2*M_PI * input_config_.chirp_freqLow * scaling_term;
                 float voltage_setpoint = input_config_.chirp_amplitude * our_arm_sin_f32(chirp_phase) + input_config_.chirp_midline;
                 if (voltage_setpoint > voltage_lim) {
