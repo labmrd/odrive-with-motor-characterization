@@ -60,7 +60,7 @@ def dump_errors(odrv, clear=False):
             else:
                 print(prefix + _VT100Colors['green'] + "no error" + _VT100Colors['default'])
 
-data_rate = 1000
+data_rate = 10
 plot_rate = 10
 num_samples = 1000
 def start_liveplotter(get_var_callback):
@@ -180,7 +180,7 @@ def start_datarecorder(odrv):
 
                 if len(vals) > num_samples:
                     vals = vals[-num_samples:]
-                time.sleep(1/data_rate)
+                #time.sleep(1/data_rate)
 
     def plot_data():
         global vals
