@@ -503,10 +503,10 @@ void pwm_trig_adc_cb(ADC_HandleTypeDef* hadc, bool injected) {
         if (!other_axis.motor_.next_timings_valid_) {
             // the motor control loop failed to update the timings in time
             // we must assume that it died and therefore float all phases
-            //bool was_armed = safety_critical_disarm_motor_pwm(other_axis.motor_); ERG TODO - TURN BACK ON
-            //if (was_armed) {
-            //    other_axis.motor_.error_ |= Motor::ERROR_CONTROL_DEADLINE_MISSED;
-            //}
+            bool was_armed = safety_critical_disarm_motor_pwm(other_axis.motor_);
+            if (was_armed) {
+                other_axis.motor_.error_ |= Motor::ERROR_CONTROL_DEADLINE_MISSED;
+            }
         } else {
             other_axis.motor_.next_timings_valid_ = false;
             safety_critical_apply_motor_pwm_timings(
