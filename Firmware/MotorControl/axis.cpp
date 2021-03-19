@@ -363,7 +363,7 @@ bool Axis::run_motor_characterize_input() {
                     }
                     counter++;
                 }
-                //comment here re: how motor update works
+
                 //float phase_vel = 2*M_PI * encoder_.vel_estimate_ / (float)encoder_.config_.cpr * motor_.config_.pole_pairs;
                 //if (!motor_.update(voltage_setpoint, encoder_.phase_, phase_vel))
                 //    return false;
@@ -422,7 +422,9 @@ bool Axis::run_motor_characterize_input() {
         
         case INPUT_TYPE_NOISE:
             run_control_loop([&]() {
-                float voltage_setpoint = voltage_lim * (rand() % input_config_.noise_max) / 100;
+                float rand_int =  rand() % (2 * 100 * input_config_.noise_max);
+                float rand_zeroed = (rand_int - input_config_.noise_max) / 10000;
+                float voltage_setpoint = voltage_lim * rand_zeroed;
                 if (voltage_setpoint > voltage_lim) {
                     voltage_setpoint = voltage_lim;
                 }

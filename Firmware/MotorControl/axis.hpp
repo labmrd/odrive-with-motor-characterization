@@ -99,16 +99,16 @@ public:
     //ERG - Parameters for input run by the characterize() function
     struct InputConfig_t {
         InputType_t input_type = INPUT_TYPE_STEP; //see: InputType_t
-        float test_delay = 3.0f;        // [s]
-        float test_duration = 10.0f;	// [s]
+        float test_delay = 2.0f;        // [s]
+        float test_duration = 5.0f;	    // [s]
         float impulse_voltage = 2.0f;   // [V]
         uint32_t impulse_peakDuration = 1;   // number of loopCount cycles, which happen at 8kHz
-        float step_voltage = 1.0f;		// [V]
-        float chirp_amplitude = 0.5f;	// [V]
-        float chirp_midline = 1.5f;		// [V]
+        float step_voltage = 0.25f;		// [V]
+        float chirp_amplitude = 0.25f;	// [V]
+        float chirp_midline = 0.0f;		// [V]
         float chirp_freqLow = 1.0f;		// [Hz]
         float chirp_freqHigh = 1000.0f;	// [Hz]
-        uint32_t noise_max = 80;             // [#] percentage of voltage limit
+        uint32_t noise_max = 2;         // [#] percentage of voltage limit
     };
     
 
