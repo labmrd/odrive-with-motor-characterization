@@ -138,6 +138,8 @@ def start_datarecorder(odrv):
     import matplotlib.pyplot as plt
 
     cancellation_token = Event()
+    sample_rate = 150
+    graph_rate = 10
 
     global vals
     vals = []
@@ -180,7 +182,7 @@ def start_datarecorder(odrv):
 
                 if len(vals) > num_samples:
                     vals = vals[-num_samples:]
-                #time.sleep(1/data_rate)
+                time.sleep(1/sample_rate)
 
     def plot_data():
         global vals
@@ -199,7 +201,7 @@ def start_datarecorder(odrv):
             plt.ylim(-odrv.axis0.motor.config.current_lim, odrv.axis0.motor.config.current_lim)
             plt.legend(('Voltage','Position','Velocity'))
             fig.canvas.draw()
-            fig.canvas.start_event_loop(1/plot_rate)
+            fig.canvas.start_event_loop(1/graph_rate)
 
     fetch_t = threading.Thread(target=fetch_data, args=(dir,))
     fetch_t.daemon = True
@@ -210,6 +212,95 @@ def start_datarecorder(odrv):
     plot_t.start()
 
     return cancellation_token
+
+def run_motor_characterize_input(odrv):
+    """
+    Runs data collection for motor characterization.
+    Note: must be set to gimbal motor mode and current control. Make sure current limit is set appropriately.
+    Runs configured test input and records time, voltage command, position, and velocity to csv in dir.
+    """
+
+    #ERG TODO - delete this once I'm done editing and want it to be an argument instead
+    dir = "C:\\Users\\Emily\\Documents\\1Graduate School\\2021 Spring\\Lab\\TestExports"
+
+    from datetime import datetime
+    start_time = datetime.now()
+    time_string = start_time.strftime("%m%d%Y_%H%M%S")
+    file_name = dir + '\\motorData' + time_string + '.csv'
+    
+    #ERG TODO - is there a way to do this in a more robust way?
+    AXIS_STATE_MOTOR_CHARACTERIZE_INPUT = 11
+    sample_rate = 150
+
+    with open(file_name, "a+") as file:
+        file.write('%Motor characterization data\n')
+        file.write("%Each row's values were recorded on the same timestep\n\n")
+        file.write('%Operator:\n')
+        file.write('%Motor type:\n')
+        file.write('%ODrive axis:\n')
+        file.write('%Date:,' + start_time.strftime("%d/%m/%Y") + '\n')
+        file.write('%Start time:,' + start_time.strftime("%H:%M:%S") + '\n\n')
+        file.write('%timestep (8Hz),voltage,position,velocity\n')
+        file.write('%[#],[V],[rad],[rad/s]\n')
+        file.flush()
+
+        #Set motor requested state
+        print("Input starting...")
+        odrv.axis0.requested_state = AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
+
+        started = False
+        finished = False
+        counter = 0
+        finish_counter = 0
+        while not finished:
+            try:            
+                idx = odrv.motorCharacterizeData_pos
+
+                print("Received motorCharacterizeData_pos " + str(idx), flush=True)
+                if idx < 128:
+                    data = [odrv.get_motorCharacterizeData_timestep(idx),
+                            odrv.get_motorCharacterizeData_voltage(idx),
+                            odrv.get_motorCharacterizeData_pos(idx),
+                            odrv.get_motorCharacterizeData_vel(idx)]
+                else:
+                    print("Invalid motorCharacterizeData_pos")
+                    print(" ")
+                    print(" ")
+                    print(" ")
+                    print(" ")
+                    print(" ")
+                    print(" ")
+                    print(" ")
+                    print(" ")
+                    print(" ")
+            except Exception as ex:
+                print(str(ex))
+                time.sleep(1)
+                continue
+            
+            str_data = map(str,data)
+            file.write(",".join(str_data) + ';\n')
+            file.flush()
+            print(" ")
+            
+            if not started and data[0] > 0:
+                started = True
+
+            if started:
+                if data[0] < 1:
+                    finish_counter += 1
+                else:
+                    finish_counter = 0
+
+                if finish_counter > 5 or counter > 500:
+                    finished = True
+
+            counter += 1
+            time.sleep(1/sample_rate)
+    
+    print("Input finished")
+    print("Data saved at: " + file_name)
+    return
 
 def print_drv_regs(name, motor):
     """
