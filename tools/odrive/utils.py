@@ -230,7 +230,8 @@ def run_motor_characterize_input(odrv):
     
     #ERG TODO - is there a way to do this in a more robust way?
     AXIS_STATE_MOTOR_CHARACTERIZE_INPUT = 11
-    sample_rate = 150
+    timeout = 30 # [s]
+    vals = []
 
     with open(file_name, "a+") as file:
         file.write('%Motor characterization data\n')
@@ -250,56 +251,49 @@ def run_motor_characterize_input(odrv):
 
         started = False
         finished = False
-        counter = 0
         finish_counter = 0
         while not finished:
             try:            
                 idx = odrv.motorCharacterizeData_pos
-
-                print("Received motorCharacterizeData_pos " + str(idx), flush=True)
                 if idx < 128:
                     data = [odrv.get_motorCharacterizeData_timestep(idx),
                             odrv.get_motorCharacterizeData_voltage(idx),
                             odrv.get_motorCharacterizeData_pos(idx),
                             odrv.get_motorCharacterizeData_vel(idx)]
                 else:
-                    print("Invalid motorCharacterizeData_pos")
-                    print(" ")
-                    print(" ")
-                    print(" ")
-                    print(" ")
-                    print(" ")
-                    print(" ")
-                    print(" ")
-                    print(" ")
-                    print(" ")
+                    print("Warning: invalid motorCharacterizeData_pos")
+                    data = [float("NaN"), float("NaN"), float("NaN"), float("NaN")]
             except Exception as ex:
                 print(str(ex))
                 time.sleep(1)
                 continue
             
-            str_data = map(str,data)
-            file.write(",".join(str_data) + ';\n')
-            file.flush()
-            print(" ")
+            vals.append(data)
             
             if not started and data[0] > 0:
                 started = True
-
+                
             if started:
                 if data[0] < 1:
                     finish_counter += 1
                 else:
                     finish_counter = 0
 
-                if finish_counter > 5 or counter > 500:
+                if finish_counter > 5:
                     finished = True
 
-            counter += 1
-            time.sleep(1/sample_rate)
-    
-    print("Input finished")
-    print("Data saved at: " + file_name)
+            elapsed = (datetime.now() - start_time).seconds
+            if elapsed > timeout:
+                print("Timeout: data collection took more than " + elapsed + "seconds")
+                finished = True
+
+            if finished:
+                print("Input finished. Recording data...")
+                for line in vals:
+                    str_data = map(str,line)
+                    file.write(",".join(str_data) + ';\n')
+                    file.flush()
+                print("Data saved at: " + file_name)
     return
 
 def print_drv_regs(name, motor):
