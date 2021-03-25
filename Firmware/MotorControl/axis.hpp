@@ -87,14 +87,12 @@ public:
     */
 
     //ERG - Input type to be run by the characterize() function
-    
     enum InputType_t {
         INPUT_TYPE_IMPULSE = 0,		//set current_setpoint high briefly, then zero
         INPUT_TYPE_STEP = 1,		//set current_setpoint zero, then constant
         INPUT_TYPE_CHIRP = 2,		//sweep current_setpoint through a given frequency range
         INPUT_TYPE_NOISE = 3, 	    //white noise, completely random
     };
-
 
     //ERG - Parameters for input run by the characterize() function
     struct InputConfig_t {
@@ -111,7 +109,6 @@ public:
         uint32_t noise_max = 2;         // [#] percentage of voltage limit
     };
     
-
     //ERG
     void record_motor_characterize_data(float timestep, float voltage_setpoint);
     bool run_motor_characterize_input();
