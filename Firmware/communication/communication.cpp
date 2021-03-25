@@ -94,9 +94,8 @@ float oscilloscope[OSCILLOSCOPE_SIZE] = {0};
 size_t oscilloscope_pos = 0;
 
 // ERG - modeling characterization data structure after oscilloscope
-//CharData_t charData[CHARDATA_SIZE] = {0}; ERG TODO - either uncomment or delete
 float motorCharacterizeData[4][MOTORCHARACTERIZEDATA_SIZE] = {0}; //the 4x128 version
-uint8_t motorCharacterizeData_size = MOTORCHARACTERIZEDATA_SIZE;
+uint8_t motorCharacterizeData_size = MOTORCHARACTERIZEDATA_SIZE; //for use in communication protocol
 uint32_t motorCharacterizeData_pos = 0;
 
 static CAN_context can1_ctx;
@@ -178,8 +177,8 @@ static inline auto make_obj_tree() {
         make_protocol_object("axis0", axes[0]->make_protocol_definitions()),
         make_protocol_object("axis1", axes[1]->make_protocol_definitions()),
         make_protocol_object("can", can1_ctx.make_protocol_definitions()),
-        make_protocol_property("motorCharacterizeData_pos", &motorCharacterizeData_pos),
-        make_protocol_property("motorCharacterizeData_size", &motorCharacterizeData_size),
+        make_protocol_property("motorCharacterizeData_pos", &motorCharacterizeData_pos), //ERG
+        make_protocol_property("motorCharacterizeData_size", &motorCharacterizeData_size), //ERG
         make_protocol_function("test_function", static_functions, &StaticFunctions::test_function, "delta"),
         make_protocol_function("get_oscilloscope_val", static_functions, &StaticFunctions::get_oscilloscope_val, "index"),
         make_protocol_function("get_adc_voltage", static_functions, &StaticFunctions::get_adc_voltage_, "gpio"),

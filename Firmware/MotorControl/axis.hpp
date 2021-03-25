@@ -35,7 +35,7 @@ public:
         AXIS_STATE_CLOSED_LOOP_CONTROL = 8,  //<! run closed loop control
         AXIS_STATE_LOCKIN_SPIN = 9,       //<! run lockin spin
         AXIS_STATE_ENCODER_DIR_FIND = 10,
-        AXIS_STATE_MOTOR_CHARACTERIZE_INPUT = 11, //<! ERG - run test input and record data in charData
+        AXIS_STATE_MOTOR_CHARACTERIZE_INPUT = 11, //<! ERG - run test input and record data in motorCharacterizeData
     };
 
     struct LockinConfig_t {
@@ -76,17 +76,7 @@ public:
         LockinConfig_t lockin;
     };
 
-    //ERG - Type for export of motor characterization data
-    /*
-    struct CharData_t {
-        uint32_t timestep = 0;           // [s]
-        float voltage_command = 0.0f;    // [V]
-        float encoder_pos = 0.0f;        // [rad]
-        float encoder_vel = 0.0f;        // [rad/s]
-    };
-    */
-
-    //ERG - Input type to be run by the characterize() function
+    //ERG - Input type to be run by run_motor_characterize_input()
     enum InputType_t {
         INPUT_TYPE_IMPULSE = 0,		//set current_setpoint high briefly, then zero
         INPUT_TYPE_STEP = 1,		//set current_setpoint zero, then constant
@@ -94,24 +84,23 @@ public:
         INPUT_TYPE_NOISE = 3, 	    //white noise, completely random
     };
 
-    //ERG - Parameters for input run by the characterize() function
+    //ERG - Parameters to be used by run_motor_characterize_input()
     struct InputConfig_t {
         InputType_t input_type = INPUT_TYPE_STEP; //see: InputType_t
-        float test_delay = 2.0f;        // [s]
-        float test_duration = 5.0f;	    // [s]
-        float impulse_voltage = 2.0f;   // [V]
-        uint32_t impulse_peakDuration = 1;   // number of loopCount cycles, which happen at 8kHz
-        float step_voltage = 0.25f;		// [V]
-        float chirp_amplitude = 0.25f;	// [V]
-        float chirp_midline = 0.0f;		// [V]
-        float chirp_freqLow = 1.0f;		// [Hz]
-        float chirp_freqHigh = 1000.0f;	// [Hz]
-        uint32_t noise_max = 2;         // [#] percentage of voltage limit
+        float test_delay = 2.0f;            // [s]
+        float test_duration = 5.0f;	        // [s]
+        float impulse_voltage = 2.0f;       // [V]
+        uint32_t impulse_peakDuration = 1;  // [#] loopCount cycles, which run at 8kHz
+        float step_voltage = 0.25f;		    // [V]
+        float chirp_amplitude = 0.25f;	    // [V]
+        float chirp_midline = 0.0f;		    // [V]
+        float chirp_freqLow = 1.0f;		    // [Hz]
+        float chirp_freqHigh = 1000.0f;	    // [Hz]
+        uint32_t noise_max = 2;             // [#] percentage of voltage limit
     };
     
-    //ERG
-    void record_motor_characterize_data(float timestep, float voltage_setpoint);
-    bool run_motor_characterize_input();
+    void record_motor_characterize_data(float timestep, float voltage_setpoint); //ERG
+    bool run_motor_characterize_input(); //ERG
 
     enum thread_signals {
         M_SIGNAL_PH_CURRENT_MEAS = 1u << 0

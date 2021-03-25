@@ -59,7 +59,7 @@ extern "C" int load_configuration(void) {
                 &motor_configs,
                 &trap_configs,
                 &axis_configs,
-                &input_configs)) {//ERG
+                &input_configs)) { //ERG
         //If loading failed, restore defaults
         board_config = BoardConfig_t();
         for (size_t i = 0; i < AXIS_COUNT; ++i) {
@@ -69,7 +69,7 @@ extern "C" int load_configuration(void) {
             motor_configs[i] = Motor::Config_t();
             trap_configs[i] = TrapezoidalTrajectory::Config_t();
             axis_configs[i] = Axis::Config_t();
-            input_configs[i] = Axis::InputConfig_t();//ERG
+            input_configs[i] = Axis::InputConfig_t(); //ERG
             // Default step/dir pins are different, so we need to explicitly load them
             Axis::load_default_step_dir_pin_config(hw_configs[i].axis_config, &axis_configs[i]);
         }
@@ -174,7 +174,7 @@ int odrive_main(void) {
                                  hw_configs[i].gate_driver_config,
                                  motor_configs[i]);
         TrapezoidalTrajectory *trap = new TrapezoidalTrajectory(trap_configs[i]);
-        axes[i] = new Axis(i, hw_configs[i].axis_config, axis_configs[i], input_configs[i],//ERG
+        axes[i] = new Axis(i, hw_configs[i].axis_config, axis_configs[i], input_configs[i], //ERG - added input_configs[i]
                 *encoder, *sensorless_estimator, *controller, *motor, *trap);
     }
     

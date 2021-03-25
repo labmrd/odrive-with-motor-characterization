@@ -98,26 +98,10 @@ extern Axis *axes[AXIS_COUNT];
 extern float oscilloscope[OSCILLOSCOPE_SIZE];
 extern size_t oscilloscope_pos;
 
-// ERG - Type for export of motor characterization data
-// ERG TODO - decided to use a simple array for now. Eventually, either uncomment or delete
-/*
-struct CharData_t {
-    uint32_t timestep = 0;           // [s]
-    float voltage_command = 0.0f;    // [V]
-    float encoder_pos = 0.0f;        // [rad]
-    float encoder_vel = 0.0f;        // [rad/s]
-};
-*/
-
-// ERG - modeling this system after the oscilloscope; defined here, initialized in communication.cpp
+// ERG - used to export results of axis.run_motor_characterize_input() (modeled after oscilloscope)
 #define MOTORCHARACTERIZEDATA_SIZE 128
-// extern CharData_t charData[CHARDATA_SIZE]; ERG TODO - either uncomment or delete
-extern float motorCharacterizeData[4][MOTORCHARACTERIZEDATA_SIZE]; //the 4x128 version
+extern float motorCharacterizeData[4][MOTORCHARACTERIZEDATA_SIZE];
 extern uint32_t motorCharacterizeData_pos;
-
-
-
-
 
 // TODO: move
 // this is technically not thread-safe but practically it might be
