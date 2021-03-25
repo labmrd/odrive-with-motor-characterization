@@ -123,114 +123,25 @@ def start_liveplotter(get_var_callback):
     return cancellation_token
     #plot_data()
 
-#ERG - modeled off of start_liveplotter; exports motorCharacterizeData to CSV
-def start_datarecorder(odrv):
-    """
-    Starts a datarecorder.
-    The variable that is recorded is retrieved from get_var_callback.
-    This function returns immediately and the datarecorder quits when
-    the user closes the plot window.
-    """
-
-    #ERG TODO - delete this once I'm done editing and want it to be an argument instead
-    dir = "C:\\Users\\Emily\\Documents\\1Graduate School\\2021 Spring\\Lab\\TestExports"
-
-    import matplotlib.pyplot as plt
-
-    cancellation_token = Event()
-    sample_rate = 150
-    graph_rate = 10
-
-    global vals
-    vals = []
-    def fetch_data(dir):
-        global vals
-        from datetime import datetime
-
-        start_time = datetime.now()
-        time_string = start_time.strftime("%m%d%Y_%H%M%S")
-        file_name = dir + '\\motorData' + time_string + '.csv'
-
-        with open(file_name, "a+") as file:
-            file.write('%Motor characterization data\n')
-            file.write("%Each row's values were recorded on the same timestep\n\n")
-            file.write('%Operator:\n')
-            file.write('%Motor type:\n')
-            file.write('%ODrive axis:\n')
-            file.write('%Date:,' + start_time.strftime("%d/%m/%Y") + '\n')
-            file.write('%Start time:,' + start_time.strftime("%H:%M:%S") + '\n\n')
-            file.write('%timestep (8Hz),voltage,position,velocity\n')
-            file.write('%[#],[V],[rad],[rad/s]\n')
-
-            while not cancellation_token.is_set():
-                try:
-                    idx = odrv.motorCharacterizeData_pos #ERG TODO - rename one of the pos to avoid ambiguity
-                    data = [odrv.get_motorCharacterizeData_timestep(idx),
-                            odrv.get_motorCharacterizeData_voltage(idx),
-                            odrv.get_motorCharacterizeData_pos(idx),
-                            odrv.get_motorCharacterizeData_vel(idx)]
-                except Exception as ex:
-                    print(str(ex))
-                    time.sleep(1)
-                    continue
-                
-                #Save latest line and write it to csv
-                #TODO - if I can flush the whole buffer, write all new lines in vals
-                vals.append(data[1:4])
-                str_data = map(str,data)
-                file.write(",".join(str_data) + ';\n')
-
-                if len(vals) > num_samples:
-                    vals = vals[-num_samples:]
-                time.sleep(1/sample_rate)
-
-    def plot_data():
-        global vals
-
-        plt.ion()
-
-        # Make sure the script terminates when the user closes the plotter
-        def did_close(evt):
-            cancellation_token.set()
-        fig = plt.figure()
-        fig.canvas.mpl_connect('close_event', did_close)
-
-        while not cancellation_token.is_set():
-            plt.clf()
-            plt.plot(vals, scalex=True, scaley=False)
-            plt.ylim(-odrv.axis0.motor.config.current_lim, odrv.axis0.motor.config.current_lim)
-            plt.legend(('Voltage','Position','Velocity'))
-            fig.canvas.draw()
-            fig.canvas.start_event_loop(1/graph_rate)
-
-    fetch_t = threading.Thread(target=fetch_data, args=(dir,))
-    fetch_t.daemon = True
-    fetch_t.start()
-    
-    plot_t = threading.Thread(target=plot_data)
-    plot_t.daemon = True
-    plot_t.start()
-
-    return cancellation_token
-
+#ERG - runs motor test and exports the data to CSV
 def run_motor_characterize_input(odrv):
     """
     Runs data collection for motor characterization.
-    Note: must be set to gimbal motor mode and current control. Make sure current limit is set appropriately.
+    Note: must be set to gimbal motor mode and current control. Make sure current limit is set appropriately,
+    and be aware that 'current limit' actually signifies the voltage limit in gimbal motor mode.
     Runs configured test input and records time, voltage command, position, and velocity to csv in dir.
     """
 
     #ERG TODO - delete this once I'm done editing and want it to be an argument instead
     dir = "C:\\Users\\Emily\\Documents\\1Graduate School\\2021 Spring\\Lab\\TestExports"
 
+    from odrive.enums import AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
     from datetime import datetime
+
     start_time = datetime.now()
     time_string = start_time.strftime("%m%d%Y_%H%M%S")
     file_name = dir + '\\motorData' + time_string + '.csv'
-    
-    #ERG TODO - is there a way to do this in a more robust way?
-    AXIS_STATE_MOTOR_CHARACTERIZE_INPUT = 11
-    timeout = 30 # [s]
+    timeout = 30 # [s] - arbitrary, change if desired
     vals = []
 
     with open(file_name, "a+") as file:
@@ -255,14 +166,15 @@ def run_motor_characterize_input(odrv):
         while not finished:
             try:            
                 idx = odrv.motorCharacterizeData_pos
-                if idx < 128:
+                if idx < odrv.motorCharacterizeData_size:
                     data = [odrv.get_motorCharacterizeData_timestep(idx),
                             odrv.get_motorCharacterizeData_voltage(idx),
-                            odrv.get_motorCharacterizeData_pos(idx),
-                            odrv.get_motorCharacterizeData_vel(idx)]
+                            odrv.get_motorCharacterizeData_position(idx),
+                            odrv.get_motorCharacterizeData_velocity(idx)]
                 else:
                     print("Warning: invalid motorCharacterizeData_pos")
                     data = [float("NaN"), float("NaN"), float("NaN"), float("NaN")]
+                    finish_counter += 1
             except Exception as ex:
                 print(str(ex))
                 time.sleep(1)
@@ -279,7 +191,7 @@ def run_motor_characterize_input(odrv):
                 else:
                     finish_counter = 0
 
-                if finish_counter > 5:
+                if finish_counter > 10:
                     finished = True
 
             elapsed = (datetime.now() - start_time).seconds
