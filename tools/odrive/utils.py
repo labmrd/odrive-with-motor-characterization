@@ -120,92 +120,96 @@ def start_liveplotter(get_var_callback):
     plot_t.start()
     
 
-    return cancellation_token;
+    return cancellation_token
     #plot_data()
 
-#ERG - modeled off of start_liveplotter; exports motorCharacterizeData to CSV
-def start_datarecorder(odrv):
+#ERG
+def run_motor_characterize_input(odrv, axs):
     """
-    Starts a datarecorder.
-    The variable that is recorded is retrieved from get_var_callback.
-    This function returns immediately and the datarecorder quits when
-    the user closes the plot window.
+    Runs configured test input for motor characterization; records time, voltage command, position, and velocity to a *.CSV in the provided directory.
+    Note: must be set to gimbal motor mode and current control. Make sure current_limit is set appropriately,
+    and be aware that this 'current limit' actually signifies the voltage limit when in gimbal motor mode.
     """
 
     #ERG TODO - delete this once I'm done editing and want it to be an argument instead
     dir = "C:\\Users\\Emily\\Documents\\1Graduate School\\2021 Spring\\Lab\\TestExports"
 
-    import matplotlib.pyplot as plt
+    from odrive.enums import AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
+    from datetime import datetime
 
-    cancellation_token = Event()
-
-    global vals
+    start_time = datetime.now()
+    time_string = start_time.strftime("%m%d%Y_%H%M%S")
+    file_name = dir + '\\motorData' + time_string + '.csv'
+    timeout = 30 # [s]
+    buffer_size = odrv.motorCharacterizeData_size
     vals = []
-    def fetch_data(dir):
-        global vals
-        from datetime import datetime
 
-        start_time = datetime.now()
-        time_string = start_time.strftime("%m%d%Y_%H%M%S")
-        file_name = dir + '\\motorData' + time_string + '.csv'
+    with open(file_name, "a+") as file:
+        file.write('%Motor characterization data\n')
+        file.write("%Each row's values were recorded on the same timestep\n")
+        file.write("%Timestep increments at 8kHz\n\n")
+        file.write('%Operator:\n')
+        file.write('%Motor:\n')
+        file.write('%ODrive axis: axis' + str(axs) + '\n')
+        file.write('%Date:,' + start_time.strftime("%d/%m/%Y") + '\n')
+        file.write('%Start time:,' + start_time.strftime("%H:%M:%S") + '\n\n')
+        file.write('%timestep (8Hz),voltage,position,velocity\n')
+        file.write('%[#],[V],[rad],[rad/s]\n')
+        file.flush()
 
-        with open(file_name, "a+") as file:
-            file.write('%Motor characterization data\n')
-            file.write("%Each row's values were recorded on the same timestep\n\n")
-            file.write('%Operator:\n')
-            file.write('%Motor type:\n')
-            file.write('%ODrive axis:\n')
-            file.write('%Date:,' + start_time.strftime("%d/%m/%Y") + '\n')
-            file.write('%Start time:,' + start_time.strftime("%H:%M:%S") + '\n\n')
-            file.write('%timestep (8Hz),voltage,position,velocity\n')
-            file.write('%[#],[V],[rad],[rad/s]\n')
+        print("Input starting...")
+        if axs == 0 and odrv.axis0.motor.is_calibrated:
+            odrv.axis0.requested_state = AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
+        elif axs == 1 and odrv.axis1.motor.is_calibrated:
+            odrv.axis1.requested_state = AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
+        else:
+            print("Error: invalid axis. Please choose either 0 or 1, and make sure axis is calibrated.")
+            return
 
-            while not cancellation_token.is_set():
-                try:
-                    data = [odrv.motorCharacterizeData.timestep,odrv.motorCharacterizeData.voltage,
-                            odrv.motorCharacterizeData.pos,odrv.motorCharacterizeData.vel]
-                except Exception as ex:
-                    print(str(ex))
-                    time.sleep(1)
-                    continue
-                
-                #Save latest line and write it to csv
-                #TODO - if I can flush the whole buffer, write all new lines in vals
-                vals.append(data)
-                str_data = map(str,data)
-                file.write(",".join(str_data) + ';\n')
+        finished = False
+        finish_counter = 0
+        while not finished:
+            try:            
+                idx = odrv.motorCharacterizeData_pos
+                if idx < buffer_size:
+                    data = [odrv.get_motorCharacterizeData_timestep(idx),
+                            odrv.get_motorCharacterizeData_voltage(idx),
+                            odrv.get_motorCharacterizeData_position(idx),
+                            odrv.get_motorCharacterizeData_velocity(idx)]
+                else:
+                    data = [float("NaN"), float("NaN"), float("NaN"), float("NaN")]
+                    finish_counter += 1
+            except Exception as ex:
+                print(str(ex))
+                time.sleep(1)
+                continue
+            
+            #Record latest data (do not write yet, to optimize for speed)
+            vals.append(data)
+            
+            #Check for end conditions (either time recorded is zero, or timeout)
+            if data[0] < 1:
+                finish_counter += 1
+            else:
+                finish_counter = 0
 
-                if len(vals) > num_samples:
-                    vals = vals[-num_samples:]
-                time.sleep(1/data_rate)
+            if finish_counter > 10:
+                finished = True
 
-    def plot_data():
-        global vals
+            elapsed = (datetime.now() - start_time).seconds
+            if elapsed >= timeout:
+                print("Timeout: took more than " + str(timeout) + " seconds")
+                finished = True
 
-        plt.ion()
-
-        # Make sure the script terminates when the user closes the plotter
-        def did_close(evt):
-            cancellation_token.set()
-        fig = plt.figure()
-        fig.canvas.mpl_connect('close_event', did_close)
-
-        while not cancellation_token.is_set():
-            plt.clf()
-            plt.plot(vals)
-            plt.legend(list(range(len(vals))))
-            fig.canvas.draw()
-            fig.canvas.start_event_loop(1/plot_rate)
-
-    fetch_t = threading.Thread(target=fetch_data, args=(dir,))
-    fetch_t.daemon = True
-    fetch_t.start()
-    
-    plot_t = threading.Thread(target=plot_data)
-    plot_t.daemon = True
-    plot_t.start()
-
-    return cancellation_token;
+            #When finished, write all recorded data
+            if finished:
+                print("Input finished. Recording data...")
+                for line in vals:
+                    str_data = map(str,line)
+                    file.write(",".join(str_data) + ';\n')
+                    file.flush()
+                print("Data saved at: " + file_name)
+    return
 
 def print_drv_regs(name, motor):
     """

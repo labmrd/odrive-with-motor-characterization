@@ -66,8 +66,6 @@ const uint8_t fw_version_unreleased = FW_VERSION_UNRELEASED; // 0 for official r
 osThreadId comm_thread;
 volatile bool endpoint_list_valid = false;
 
-static uint32_t test_property = 0;
-
 /* Private function prototypes -----------------------------------------------*/
 
 auto make_protocol_definitions(PWMMapping_t& mapping) {
@@ -75,17 +73,6 @@ auto make_protocol_definitions(PWMMapping_t& mapping) {
         make_protocol_property("endpoint", &mapping.endpoint),
         make_protocol_property("min", &mapping.min),
         make_protocol_property("max", &mapping.max)
-    );
-}
-
-/* ERG - Sub-tree for motorCharacterizeData access ---------------------------*/
-
-auto make_motorCharacterizeData_definitions(size_t idx) {
-    return make_protocol_member_list(
-        make_protocol_property("timestep", &motorCharacterizeData[0][idx]),
-        make_protocol_property("voltage", &motorCharacterizeData[1][idx]),
-        make_protocol_property("pos", &motorCharacterizeData[2][idx]),
-        make_protocol_property("vel", &motorCharacterizeData[3][idx])
     );
 }
 
@@ -107,9 +94,9 @@ float oscilloscope[OSCILLOSCOPE_SIZE] = {0};
 size_t oscilloscope_pos = 0;
 
 // ERG - modeling characterization data structure after oscilloscope
-//CharData_t charData[CHARDATA_SIZE] = {0}; ERG TODO - either uncomment or delete
 float motorCharacterizeData[4][MOTORCHARACTERIZEDATA_SIZE] = {0}; //the 4x128 version
-size_t motorCharacterizeData_pos = 0;
+uint8_t motorCharacterizeData_size = MOTORCHARACTERIZEDATA_SIZE; //for use in communication protocol
+uint32_t motorCharacterizeData_pos = 0;
 
 static CAN_context can1_ctx;
 
@@ -124,6 +111,10 @@ public:
     void enter_dfu_mode_helper() { enter_dfu_mode(); }
     float get_oscilloscope_val(uint32_t index) { return oscilloscope[index]; }
     float get_adc_voltage_(uint32_t gpio) { return get_adc_voltage(get_gpio_port_by_pin(gpio), get_gpio_pin_by_pin(gpio)); }
+    float get_motorCharacterizeData_timestep(uint32_t index) { return motorCharacterizeData[0][index]; } //ERG
+    float get_motorCharacterizeData_voltage(uint32_t index) { return motorCharacterizeData[1][index]; } //ERG
+    float get_motorCharacterizeData_position(uint32_t index) { return motorCharacterizeData[2][index]; } //ERG
+    float get_motorCharacterizeData_velocity(uint32_t index) { return motorCharacterizeData[3][index]; } //ERG
     int32_t test_function(int32_t delta) { static int cnt = 0; return cnt += delta; }
 } static_functions;
 
@@ -186,11 +177,15 @@ static inline auto make_obj_tree() {
         make_protocol_object("axis0", axes[0]->make_protocol_definitions()),
         make_protocol_object("axis1", axes[1]->make_protocol_definitions()),
         make_protocol_object("can", can1_ctx.make_protocol_definitions()),
-        make_protocol_object("motorCharacterizeData", make_motorCharacterizeData_definitions(motorCharacterizeData_pos)), //ERG
-        make_protocol_property("test_property", &test_property),
+        make_protocol_property("motorCharacterizeData_pos", &motorCharacterizeData_pos), //ERG
+        make_protocol_property("motorCharacterizeData_size", &motorCharacterizeData_size), //ERG
         make_protocol_function("test_function", static_functions, &StaticFunctions::test_function, "delta"),
         make_protocol_function("get_oscilloscope_val", static_functions, &StaticFunctions::get_oscilloscope_val, "index"),
         make_protocol_function("get_adc_voltage", static_functions, &StaticFunctions::get_adc_voltage_, "gpio"),
+        make_protocol_function("get_motorCharacterizeData_timestep", static_functions, &StaticFunctions::get_motorCharacterizeData_timestep, "index"), //ERG
+        make_protocol_function("get_motorCharacterizeData_voltage", static_functions, &StaticFunctions::get_motorCharacterizeData_voltage, "index"), //ERG
+        make_protocol_function("get_motorCharacterizeData_position", static_functions, &StaticFunctions::get_motorCharacterizeData_position, "index"), //ERG
+        make_protocol_function("get_motorCharacterizeData_velocity", static_functions, &StaticFunctions::get_motorCharacterizeData_velocity, "index"), //ERG
         make_protocol_function("save_configuration", static_functions, &StaticFunctions::save_configuration_helper),
         make_protocol_function("erase_configuration", static_functions, &StaticFunctions::erase_configuration_helper),
         make_protocol_function("reboot", static_functions, &StaticFunctions::NVIC_SystemReset_helper),
