@@ -5,7 +5,7 @@ import threading
 import fibre
 import odrive
 import odrive.enums
-from odrive.utils import start_liveplotter, dump_errors, run_motor_characterize_input # ERG - added start_datarecorder
+from odrive.utils import start_liveplotter, dump_errors, run_motor_characterize_input # ERG - added run_motor_characterize_input
 #from odrive.enums import * # pylint: disable=W0614
 
 def print_banner():

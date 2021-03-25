@@ -123,13 +123,12 @@ def start_liveplotter(get_var_callback):
     return cancellation_token
     #plot_data()
 
-#ERG - runs motor test and exports the data to CSV
+#ERG
 def run_motor_characterize_input(odrv):
     """
-    Runs data collection for motor characterization.
-    Note: must be set to gimbal motor mode and current control. Make sure current limit is set appropriately,
-    and be aware that 'current limit' actually signifies the voltage limit in gimbal motor mode.
-    Runs configured test input and records time, voltage command, position, and velocity to csv in dir.
+    Runs configured test input for motor characterization; records time, voltage command, position, and velocity to a *.CSV in the provided directory.
+    Note: must be set to gimbal motor mode and current control. Make sure current_limit is set appropriately,
+    and be aware that this 'current limit' actually signifies the voltage limit when in gimbal motor mode.
     """
 
     #ERG TODO - delete this once I'm done editing and want it to be an argument instead
@@ -142,6 +141,7 @@ def run_motor_characterize_input(odrv):
     time_string = start_time.strftime("%m%d%Y_%H%M%S")
     file_name = dir + '\\motorData' + time_string + '.csv'
     timeout = 30 # [s] - arbitrary, change if desired
+    buffer_size = odrv.motorCharacterizeData_size
     vals = []
 
     with open(file_name, "a+") as file:
@@ -156,7 +156,6 @@ def run_motor_characterize_input(odrv):
         file.write('%[#],[V],[rad],[rad/s]\n')
         file.flush()
 
-        #Set motor requested state
         print("Input starting...")
         odrv.axis0.requested_state = AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
 
@@ -166,7 +165,7 @@ def run_motor_characterize_input(odrv):
         while not finished:
             try:            
                 idx = odrv.motorCharacterizeData_pos
-                if idx < odrv.motorCharacterizeData_size:
+                if idx < buffer_size:
                     data = [odrv.get_motorCharacterizeData_timestep(idx),
                             odrv.get_motorCharacterizeData_voltage(idx),
                             odrv.get_motorCharacterizeData_position(idx),
