@@ -124,7 +124,7 @@ def start_liveplotter(get_var_callback):
     #plot_data()
 
 #ERG
-def run_motor_characterize_input(odrv):
+def run_motor_characterize_input(odrv, axs):
     """
     Runs configured test input for motor characterization; records time, voltage command, position, and velocity to a *.CSV in the provided directory.
     Note: must be set to gimbal motor mode and current control. Make sure current_limit is set appropriately,
@@ -157,9 +157,14 @@ def run_motor_characterize_input(odrv):
         file.flush()
 
         print("Input starting...")
-        odrv.axis0.requested_state = AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
+        if axs == 0 and odrv.axis0.motor.is_calibrated:
+            odrv.axis0.requested_state = AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
+        elif axs == 1 and odrv.axis1.motor.is_calibrated:
+            odrv.axis1.requested_state = AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
+        else:
+            print("Error: invalid axis. Please choose either 0 or 1, and make sure axis is calibrated.")
+            return
 
-        started = False
         finished = False
         finish_counter = 0
         while not finished:
@@ -179,25 +184,24 @@ def run_motor_characterize_input(odrv):
                 time.sleep(1)
                 continue
             
+            #Record latest data (do not write yet, to optimize for speed)
             vals.append(data)
             
-            if not started and data[0] > 0:
-                started = True
-                
-            if started:
-                if data[0] < 1:
-                    finish_counter += 1
-                else:
-                    finish_counter = 0
+            #Check for end conditions (either time recorded is zero, or timeout)
+            if data[0] < 1:
+                finish_counter += 1
+            else:
+                finish_counter = 0
 
-                if finish_counter > 10:
-                    finished = True
+            if finish_counter > 10:
+                finished = True
 
             elapsed = (datetime.now() - start_time).seconds
             if elapsed > timeout:
-                print("Timeout: data collection took more than " + elapsed + "seconds")
+                print("Timeout: took more than " + elapsed + "seconds")
                 finished = True
 
+            #When finished, write all recorded data
             if finished:
                 print("Input finished. Recording data...")
                 for line in vals:
