@@ -171,7 +171,7 @@ def run_motor_characterize_input(odrv, axs):
         while not finished:
             try:            
                 idx = odrv.motorCharacterizeData_pos
-                if idx < buffer_size:
+                if idx < buffer_size and idx > 0:
                     data = [odrv.get_motorCharacterizeData_timestep(idx),
                             odrv.get_motorCharacterizeData_voltage(idx),
                             odrv.get_motorCharacterizeData_position(idx),
