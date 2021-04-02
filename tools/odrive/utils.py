@@ -124,15 +124,12 @@ def start_liveplotter(get_var_callback):
     #plot_data()
 
 #ERG
-def run_motor_characterize_input(odrv, axs):
+def run_motor_characterize_input(odrv, axs, dir):
     """
     Runs configured test input for motor characterization; records time, voltage command, position, and velocity to a *.CSV in the provided directory.
     Note: must be set to gimbal motor mode and current control. Make sure current_limit is set appropriately,
     and be aware that this 'current limit' actually signifies the voltage limit when in gimbal motor mode.
     """
-
-    #ERG TODO - delete this once I'm done editing and want it to be an argument instead
-    dir = "C:\\Users\\Emily\\Documents\\1Graduate School\\2021 Spring\\Lab\\TestExports"
 
     from odrive.enums import AXIS_STATE_MOTOR_CHARACTERIZE_INPUT
     from datetime import datetime
@@ -140,6 +137,10 @@ def run_motor_characterize_input(odrv, axs):
     start_time = datetime.now()
     time_string = start_time.strftime("%m%d%Y_%H%M%S")
     file_name = dir + '\\motorData' + time_string + '.csv'
+    if not os.path.isdir(dir):
+        print("Error: invalid directory")
+        return
+
     timeout = 30 # [s]
     buffer_size = odrv.motorCharacterizeData_size
     vals = []
@@ -171,6 +172,7 @@ def run_motor_characterize_input(odrv, axs):
         while not finished:
             try:            
                 idx = odrv.motorCharacterizeData_pos
+                #ERG TODO - figure out why fetching data with idx==0 shifts all the data over a column, remove idx>0 condition
                 if idx < buffer_size and idx > 0:
                     data = [odrv.get_motorCharacterizeData_timestep(idx),
                             odrv.get_motorCharacterizeData_voltage(idx),
