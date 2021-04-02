@@ -1,0 +1,1 @@
+This folder contains reference materials on brushless DC motors, field-oriented control (FOC), and other topics cited in the master's report describing this project. Since these documents are primarily company-published PDFs and therefore do not have stable addresses, they have been saved here to prevent them from becoming inaccessible over time.
