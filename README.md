@@ -11,3 +11,5 @@ For more information on the ODrive, see their [product website](https://odrivero
  * **Test Inputs**: Axis class edited to add user-configurable voltage inputs
  * **Data Collection**: communication protocol and Axis class edited to add a ring buffer of data saved during test inputs
  * **Data Export**: odrivetool edited to access ring buffer, plot results, and export to CSV
+
+For full list of changes, see the [summary of contributions](https://github.com/labmrd/odrive-with-motor-characterization/blob/main/docs/references/Summary-of-Contributions.pdf)
