@@ -155,7 +155,7 @@ def run_motor_characterize_input(odrv, axs, dir):
         file.write('%Date:,' + start_time.strftime("%d/%m/%Y") + '\n')
         file.write('%Start time:,' + start_time.strftime("%H:%M:%S") + '\n\n')
         file.write('%timestep (8Hz),voltage,position,velocity\n')
-        file.write('%[#],[V],[rad],[rad/s]\n')
+        file.write('%[#],[V],[counts],[counts/s]\n')
         file.flush()
 
         print("Input starting...")
