@@ -1,0 +1,1 @@
+Overall summary of project goals, methods, and results. Summary of contributions is an appendix of the report, but is also provided separately for quick reference re: changes made to ODrive firmware v0.5.1.
