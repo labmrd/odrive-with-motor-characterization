@@ -1,0 +1,1 @@
+References cited in the project report. Note that all ODrive materials are updated regularly and can be found at https://docs.odriverobotics.com/. Rough copies (e.g., of the current ODrive encoder guide) have been provided here for quick reference, but up-to-date materials should be accessed from the ODrive webste or GitHub (https://github.com/odriverobotics/ODrive).
